@@ -89,8 +89,7 @@ class loginUser(APIView):
             })
         else:
              return Response({'error': 'Invalid Credentials',"status":401})
-         
-         
+                 
 class GetProfile(APIView):
     permission_classes = [IsAuthenticated]
     def get(self,request):
@@ -98,7 +97,6 @@ class GetProfile(APIView):
         print(user)
         serialization = UpdateUserDetailsSerializer(user)
         return Response(serialization.data)
-
 
 class UpdateProfile(APIView):
     permission_classes = [IsAuthenticated]
@@ -121,8 +119,7 @@ class UpdateProfile(APIView):
             return Response({"success": True, "message": "Profile updated successfully.", "status_code": 200}, status=200)
 
         return Response({"success": False, "message": "Invalid data.", "errors": serializer.errors, "status_code": 400}, status=400)
-          
-          
+                    
 class logoutUser(APIView):
     permission_classes=[IsAuthenticated]
     def post(self,request):
@@ -203,4 +200,35 @@ class forgotPassword(APIView):
             return Response({"message":"new password set successfully"},status=status.HTTP_200_OK)
         return Response({"error": "Invalid request."}, status=status.HTTP_400_BAD_REQUEST)        
 
+class AccountDeletion(APIView):
+    permission_classes=[IsAuthenticated]
+    def post(self,request):
+        user = request.user
         
+        if user.is_active==False:
+            return Response({"message":"User Account alrady Deleted"},status=00)
+        
+        user.is_active=False
+        user.save()
+        return Response({"message":"Your Account Delete succesfully"},status=200)
+    
+class AccountDeactivationReactivation(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        is_active = request.data.get('is_active')
+        if is_active is None:
+            return Response({"error": "Missing 'is_active' in request body."}, status=400)
+        
+        user = request.user
+
+        if user.is_active == is_active:
+            state = "already active" if is_active else "already deactivated"
+            return Response({"message": f"User account is {state}."}, status=200)
+
+        user.is_active = is_active
+        user.save()
+
+        message = "User account successfully Activated" if is_active else "User account successfully Deactivated"
+        return Response({"message": message}, status=200)
+

@@ -1,4 +1,4 @@
-from .views import RegisterUser,loginUser,GetProfile,UpdateProfile,logoutUser,ResetPassword,forgotPassword
+from .views import RegisterUser,loginUser,GetProfile,UpdateProfile,logoutUser,ResetPassword,forgotPassword,AccountDeactivationReactivation,AccountDeletion
 from django.urls import path
 
 urlpatterns = [
@@ -8,5 +8,7 @@ urlpatterns = [
    path('UpdateProfile/<int:pk>/',UpdateProfile.as_view(),name='UpdateProfile'),
    path('logoutUser/',logoutUser.as_view(),name='logoutUser'),
    path('ResetPassword/',ResetPassword.as_view(),name='ResetPassword'),
-   path('forgotPassword/',forgotPassword.as_view(),name='forgotPassword')
+   path('forgotPassword/',forgotPassword.as_view(),name='forgotPassword'),
+   path('AccountDeactivationReactivation/',AccountDeactivationReactivation.as_view(),name='AccountDeactivationReactivation'),
+   path('AccountDeletion/',AccountDeletion.as_view(),name='AccountDeletion')
 ]
