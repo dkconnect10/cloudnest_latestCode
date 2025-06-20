@@ -12,6 +12,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_encode,urlsafe_base64_decode
 from django.utils.encoding import force_bytes,force_str
 from src.settings.base import  EMAIL_HOST_USER
+from .tasks import userActivation_Task
 
 
 class RegisterUser(APIView):
@@ -228,7 +229,10 @@ class AccountDeactivationReactivation(APIView):
 
         user.is_active = is_active
         user.save()
+        
+        if not  is_active:
+            userActivation_Task.apply_async(args=[user.id],countdown=10)
 
-        message = "User account successfully Activated" if is_active else "User account successfully Deactivated"
+        message = "User account successfully Activated" if is_active else "User account successfully Deactivated and will auto-activate after 10 second."
         return Response({"message": message}, status=200)
 
