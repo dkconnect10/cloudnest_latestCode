@@ -70,3 +70,11 @@ class Role(TimestampAwareModel):
     
     def __str__(self):
         return self.name or "Unnamed Role"
+    
+    
+class UserDetails(TimestampAwareModel):
+    user_obj=models.OneToOneField('User',on_delete=models.CASCADE)
+    address=models.ForeignKey(Address,on_delete=models.CASCADE)
+    role=models.ForeignKey('Role',on_delete=models.CASCADE)
+    
+        
