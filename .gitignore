@@ -1,30 +1,32 @@
 # Python
 __pycache__/
 *.py[cod]
-*.sqlite3
-*.log
-*.pot
 *.pyc
 *.pyo
 *.pyd
-*.env
+*.log
+*.pot
+*.sqlite3
+
+# Environment Files
+.env
 .env.*
+!.env.sample   # allow only this file to be committed
+
+# Virtual Environments
 *.venv/
 .venv/
-+ !.env.sample
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
 # Django
 db.sqlite3
 media/
 staticfiles/
 local_settings.py
-
-# Virtualenv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
 
 # VSCode
 .vscode/
@@ -50,8 +52,5 @@ coverage.xml
 # Docker
 *.pid
 
-# Env Files
-*.env
-
-# Others
-*.idea/
+# IDEs and Editors
+.idea/
