@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'apps.users',
+    'apps.doctors',
+    'apps.Address',
     'rest_framework',
     'django_celery_results',
     'django_celery_beat',

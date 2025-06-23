@@ -1,5 +1,7 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
+from apps.Address.models import TimestampAwareModel,Address
+
 
 
 class UserManager(BaseUserManager):
@@ -38,13 +40,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     full_name = models.CharField(max_length=150, blank=True)
     phone = models.CharField(max_length=15, unique=True, null=True, blank=True)
     avatar = models.ImageField(upload_to=avatar_upload_path, blank=True, null=True)
-    
+    gender = models.CharField(max_length=10, choices=[('male','Male'),('female','Female'),('other','Other')], null=True, blank=True)
     is_email_verified = models.BooleanField(default=False)
     onboarding_complete = models.BooleanField(default=False)
     signup_source = models.CharField(max_length=20, default='website')
-    
     date_joined = models.DateTimeField(auto_now_add=True)
-    
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
@@ -60,3 +60,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     class Meta:
         verbose_name = 'User'
         verbose_name_plural = 'Users'
+ 
+
+
+        
+class Role(TimestampAwareModel):
+    name=models.CharField(max_length=50,null=True,blank=True,unique=True)
+    is_active=models.BooleanField(default=False)      
+    
+    def __str__(self):
+        return self.name or "Unnamed Role"
