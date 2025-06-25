@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User
+from .models import User,Role
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
@@ -56,3 +56,9 @@ class UpdateUserDetailsSerializer(serializers.ModelSerializer):
             instance.set_password(password)
         instance.save()
         return instance
+    
+    
+    class RoleSerializer(serializers.ModelSerializer):
+        class Meta:
+            model=Role
+            fields='__all__'

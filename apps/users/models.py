@@ -77,4 +77,5 @@ class UserDetails(TimestampAwareModel):
     address=models.ForeignKey(Address,on_delete=models.CASCADE)
     role=models.ForeignKey('Role',on_delete=models.CASCADE)
     
+    
         
