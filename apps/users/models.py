@@ -4,6 +4,7 @@ from apps.Address.models import TimestampAwareModel,Address
 
 
 
+
 class UserManager(BaseUserManager):
     def create_user(self, username, email, password=None, **extra_fields):
         if not email:
@@ -76,5 +77,6 @@ class UserDetails(TimestampAwareModel):
     user_obj=models.OneToOneField('User',on_delete=models.CASCADE)
     address=models.ForeignKey(Address,on_delete=models.CASCADE)
     role=models.ForeignKey('Role',on_delete=models.CASCADE)
+    
     
         
