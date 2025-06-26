@@ -4,6 +4,7 @@ from apps.Address.models import TimestampAwareModel,Address
 
 
 
+
 class UserManager(BaseUserManager):
     def create_user(self, username, email, password=None, **extra_fields):
         if not email:
