@@ -45,9 +45,9 @@ coverage.xml
 *.py,cover
 
 # Migrations
-**/migrations/*.pyc
-**/migrations/__pycache__/
-**/migrations/*.py
+# **/migrations/*.pyc
+# **/migrations/__pycache__/
+# **/migrations/*.py
 
 # Docker
 *.pid

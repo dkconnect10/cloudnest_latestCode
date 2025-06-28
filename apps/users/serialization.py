@@ -58,7 +58,7 @@ class UpdateUserDetailsSerializer(serializers.ModelSerializer):
         return instance
     
     
-    class RoleSerializer(serializers.ModelSerializer):
-        class Meta:
-            model=Role
-            fields='__all__'
+class RoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Role
+        fields='__all__'

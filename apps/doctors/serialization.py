@@ -1,7 +1,7 @@
 from .models import Doctor, License
 from rest_framework.serializers import ModelSerializer
-from users.serialization import RegisterUserSerializer, RoleSerializer
-from Address.serialization import Address_seriliaztion
+from apps.users.serialization import RegisterUserSerializer , RoleSerializer
+from apps.Address.serialization import Address_seriliaztion
 
 
 class LicenseSerializer(ModelSerializer):
@@ -19,10 +19,11 @@ class DoctorSerializer(ModelSerializer):
     class Meta:
         model = Doctor
         fields = [
-            'specialization',
             'user',
             'address',
             'role',
-            'license',
+            'specialization',
             'experience_years'
+            'license',
+            
         ]

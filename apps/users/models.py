@@ -74,7 +74,7 @@ class Role(TimestampAwareModel):
     
     
 class UserDetails(TimestampAwareModel):
-    user_obj=models.OneToOneField('User',on_delete=models.CASCADE)
+    user_obj=models.OneToOneField('User',on_delete=models.CASCADE,primary_key=True)
     address=models.ForeignKey(Address,on_delete=models.CASCADE)
     role=models.ForeignKey('Role',on_delete=models.CASCADE)
     
