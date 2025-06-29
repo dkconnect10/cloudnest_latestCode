@@ -1,7 +1,7 @@
 from rest_framework.serializers import ModelSerializer
 from .models import Hospital
-from apps.users.serialization import RegisterUserSerializer
-from apps.Address.serialization import Address_seriliaztion
+from apps.users.serializers import RegisterUserSerializer
+from apps.Address.serializers import Address_seriliaztion
 
 
 class HospitalSerialization(ModelSerializer):

@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from .permissions import IsDoctorOrAdmin
 from rest_framework.permissions import IsAuthenticated,IsAdminUser
 from rest_framework.response import Response
-from .serialization import DoctorSerializer
+from .serializers import DoctorSerializer
 
 class Doctors(APIView):
     permission_classes=[IsAuthenticated]

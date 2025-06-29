@@ -1,7 +1,7 @@
 from .models import Doctor, License
 from rest_framework.serializers import ModelSerializer
-from apps.users.serialization import RegisterUserSerializer , RoleSerializer
-from apps.Address.serialization import Address_seriliaztion
+from apps.users.serializers import RegisterUserSerializer , RoleSerializer
+from apps.Address.serializers import Address_seriliaztion
 
 
 class LicenseSerializer(ModelSerializer):
