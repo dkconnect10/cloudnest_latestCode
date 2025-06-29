@@ -23,7 +23,7 @@ class DoctorSerializer(ModelSerializer):
             'address',
             'role',
             'specialization',
-            'experience_years'
+            'experience_years',
             'license',
             
         ]

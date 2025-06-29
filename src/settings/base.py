@@ -41,9 +41,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
+    # apps installation
     'apps.users',
     'apps.doctors',
     'apps.Address',
+    'apps.hospital',
+    
+    
+
+    # thired party installation
     'rest_framework',
     'django_celery_results',
     'django_celery_beat',
