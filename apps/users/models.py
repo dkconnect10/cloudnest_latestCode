@@ -77,6 +77,9 @@ class UserDetails(TimestampAwareModel):
     user_obj=models.OneToOneField('User',on_delete=models.CASCADE,primary_key=True)
     address=models.ForeignKey(Address,on_delete=models.CASCADE)
     role=models.ForeignKey('Role',on_delete=models.CASCADE)
+    reporting_to=models.ForeignKey('User',on_delete=models.SET_NULL,blank=True,null=True, 
+                                   related_name="subordinates")
     
     
-        
+    def __str__(self):
+        return f"{self.user_obj.username} ({self.role.name}) ({self.reporting_to.name})"    

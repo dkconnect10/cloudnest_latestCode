@@ -9,6 +9,9 @@ class Hospital(TimestampAwareModel):
     phone = models.CharField(max_length=15, null=True, blank=True)
     website = models.URLField(null=True, blank=True)
     address = models.ForeignKey(Address,on_delete=models.CASCADE, null=True, blank=True)
+    logo = models.ImageField(upload_to="hospital_logos/", null=True, blank=True)
+    established_year = models.PositiveIntegerField(null=True, blank=True)
+    Approval = models.CharField(max_length=200, null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
