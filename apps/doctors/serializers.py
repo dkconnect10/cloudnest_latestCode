@@ -1,17 +1,12 @@
-from .models import Doctor, License
+from .models import Doctor
 from rest_framework.serializers import ModelSerializer
-from apps.users.serializers import RegisterUserSerializer , RoleSerializer
+from apps.users.serializers import UserSerializer , RoleSerializer
 from apps.Address.serializers import Address_seriliaztion
-
-
-class LicenseSerializer(ModelSerializer):
-    class Meta:
-        model = License
-        fields = '__all__'  
+from apps.licenses.serializers import LicenseSerializer
 
 
 class DoctorSerializer(ModelSerializer):
-    user = RegisterUserSerializer()
+    user = UserSerializer()
     address = Address_seriliaztion()
     role = RoleSerializer()
     license = LicenseSerializer()
