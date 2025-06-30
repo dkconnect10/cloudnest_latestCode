@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate,logout,login
-from .serializers import RegisterUserSerializer,UpdateUserDetailsSerializer
+from .serializers import UserSerializer,updateUserserializer
 from .models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
@@ -21,7 +21,7 @@ class RegisterUser(APIView):
         verifyed_token = request.data.get('verifyed_token') or None
 
         if not uidb64 and not verifyed_token:
-            serialize = RegisterUserSerializer(data=request.data)
+            serialize = UserSerializer(data=request.data)
             if serialize.is_valid():
                 user_instance = serialize.save()
                 user_instance.is_active = False
@@ -96,7 +96,7 @@ class GetProfile(APIView):
     def get(self,request):
         user = request.user
         print(user)
-        serialization = UpdateUserDetailsSerializer(user)
+        serialization = updateUserserializer(user)
         return Response(serialization.data)
 
 class UpdateProfile(APIView):
@@ -114,7 +114,7 @@ class UpdateProfile(APIView):
         if not request.user.is_superuser and request.user != user_to_update:
             return Response({"success": False, "message": "You are not authorized to update this profile.", "status_code": 403}, status=403)
 
-        serializer = UpdateUserDetailsSerializer(user_to_update, data=request.data, partial=True)
+        serializer = updateUserserializer(user_to_update, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response({"success": True, "message": "Profile updated successfully.", "status_code": 200}, status=200)

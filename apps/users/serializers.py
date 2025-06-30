@@ -1,8 +1,9 @@
 from rest_framework import serializers
-from .models import User,Role
+from .models import User,Role,UserDetails
+from apps.Address.serializers import Address_seriliaztion
 
 
-class RegisterUserSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
 
     class Meta:
@@ -32,7 +33,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 
 
 
-class UpdateUserDetailsSerializer(serializers.ModelSerializer):
+class updateUserserializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=False)
 
     class Meta:
@@ -62,3 +63,12 @@ class RoleSerializer(serializers.ModelSerializer):
     class Meta:
         model=Role
         fields='__all__'
+        
+class UserDetailsSerializer(serializers.ModelSerializer):
+    user_obj=UserSerializer()
+    role = RoleSerializer()
+    address = Address_seriliaztion()
+    reporting_to = UserSerializer()
+    class Meta:
+        model= UserDetails
+        fields=['user_obj','role','address','reporting_to']        
