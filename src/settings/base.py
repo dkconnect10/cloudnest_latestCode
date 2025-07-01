@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     'apps.Address',
     'apps.hospital',
     'apps.licenses',
-    'home',
+    'apps.home',
     
     
 
