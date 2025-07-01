@@ -49,7 +49,8 @@ INSTALLED_APPS = [
     'apps.hospital',
     'apps.licenses',
     
-    
+    # frontend third party
+    'corsheaders',
 
     # thired party installation
     'rest_framework',
@@ -65,8 +66,16 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
+    # user ip 
     'apps.users.middleware.simple_user_logger.SimpleUserMiddleware',
+    
+    # frontend middleware
+    'corsheaders.middleware.CorsMiddleware'
 ]
+
+# CORS POLICY
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'src.urls'
 
