@@ -33,7 +33,8 @@ class RegisterUser(APIView):
                 token = token_generator.make_token(user)
 
                 uid = urlsafe_base64_encode(force_bytes(user.pk))
-                VerifyEmail_link = f"http://yourdomain.com/verify-email?uid={uid}&token={token}"
+                # VerifyEmail_link = f"http://yourdomain.com/verify-email?uid={uid}&token={token}"
+                VerifyEmail_link = f"http://localhost:3000/verify-email?uid={uid}&token={token}"
                 try:
                     send_mail(
                         subject='Verify your Email',
