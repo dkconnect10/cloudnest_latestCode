@@ -22,6 +22,7 @@ class Doctors(APIView):
             
         
             user_instance = request.user
+            
             role_name=request.data.get('role')
             role = Role.objects.get(name__iexact=role_name)
 

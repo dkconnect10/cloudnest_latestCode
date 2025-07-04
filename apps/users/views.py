@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate,logout,login
 from .serializers import UserSerializer,updateUserserializer
 from .models import User
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,AllowAny
 from django.contrib.auth.hashers import check_password
 from django.core.mail import send_mail  
 from django.contrib.auth.tokens import PasswordResetTokenGenerator 
@@ -13,58 +13,27 @@ from django.utils.http import urlsafe_base64_encode,urlsafe_base64_decode
 from django.utils.encoding import force_bytes,force_str
 from src.settings.base import  EMAIL_HOST_USER
 from .tasks import userActivation_Task
+from .serializers import UserSerializer
+from apps.users.swagger_docs.user_swagger import register_or_verify_schema
+
 
 
 class RegisterUser(APIView):
+    @register_or_verify_schema(UserSerializer)
     def post(self, request):
-        uidb64 = request.data.get('uidb64') or None
-        verifyed_token = request.data.get('verifyed_token') or None
+        uidb64 = request.query_params.get('uidb64')
+        verifyed_token = request.query_params.get('verifyed_token')
 
-        if not uidb64 and not verifyed_token:
-            serialize = UserSerializer(data=request.data)
-            if serialize.is_valid():
-                user_instance = serialize.save()
-                user_instance.is_active = False
-                user_instance.save()
 
-                email = serialize.data.get('email')
-                user = User.objects.filter(email=email).first()
-                token_generator = PasswordResetTokenGenerator()
-                token = token_generator.make_token(user)
-
-                uid = urlsafe_base64_encode(force_bytes(user.pk))
-                # VerifyEmail_link = f"http://yourdomain.com/verify-email?uid={uid}&token={token}"
-                VerifyEmail_link = f"http://localhost:3000/verify-email?uid={uid}&token={token}"
-                try:
-                    send_mail(
-                        subject='Verify your Email',
-                        message=f"Click the link to Verify your Email:\n{VerifyEmail_link}",
-                        from_email=EMAIL_HOST_USER,
-                        recipient_list=[email],
-                        fail_silently=False,
-                    )
-                except Exception as e:
-                      return Response({"error": f"Failed to send verification email. Reason: {str(e)}"}, status=500)
-
-                return Response({
-                    "message": "User registered successfully",
-                    "token": token,
-                    "uid": uid
-                }, status=status.HTTP_201_CREATED)
-            else:
-                return Response({"error": serialize.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        elif uidb64 and verifyed_token:
-            uid = force_str(urlsafe_base64_decode(uidb64))
-            user = User.objects.filter(pk=uid).first()
-
-            if not user:
+        if uidb64 and verifyed_token:
+            try:
+                uid = force_str(urlsafe_base64_decode(uidb64))
+                user = User.objects.get(pk=uid)
+            except (User.DoesNotExist, ValueError, TypeError):
                 return Response({"message": "User not registered"}, status=status.HTTP_401_UNAUTHORIZED)
 
             token_generator = PasswordResetTokenGenerator()
-            authenticated = token_generator.check_token(user, verifyed_token)
-
-            if not authenticated:
+            if not token_generator.check_token(user, verifyed_token):
                 return Response({"message": "Token not valid. Please register again"}, status=status.HTTP_401_UNAUTHORIZED)
 
             user.is_active = True
@@ -72,8 +41,39 @@ class RegisterUser(APIView):
             user.save()
             return Response({"message": "User verified successfully"}, status=status.HTTP_202_ACCEPTED)
 
-        return Response({"error": "Invalid request."}, status=status.HTTP_400_BAD_REQUEST)
-    
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            user_instance = serializer.save()
+            user_instance.is_active = False
+            user_instance.save()
+
+            email = serializer.data.get('email')
+            user = User.objects.get(email=email)
+            token_generator = PasswordResetTokenGenerator()
+            token = token_generator.make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+            verify_link = f"http://localhost:3000/verify-email?uid={uid}&token={token}"
+            try:
+                send_mail(
+                    subject='Verify your Email',
+                    message=f"Click the link to Verify your Email:\n{verify_link}",
+                    from_email=EMAIL_HOST_USER,
+                    recipient_list=[email],
+                    fail_silently=False,
+                )
+            except Exception as e:
+                return Response({"error": f"Failed to send verification email. Reason: {str(e)}"}, status=500)
+
+            return Response({
+                "message": "User registered successfully",
+                "token": token,
+                "uid": uid
+            }, status=status.HTTP_201_CREATED)
+
+        return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+   
 class loginUser(APIView):
     def post(self,request):
         email = request.data.get('email')

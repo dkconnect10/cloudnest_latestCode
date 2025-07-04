@@ -77,6 +77,7 @@ class UserDetails(TimestampAwareModel):
     user_obj=models.OneToOneField('User',on_delete=models.CASCADE,primary_key=True)
     address=models.ForeignKey(Address,on_delete=models.CASCADE)
     role=models.ForeignKey('Role',on_delete=models.CASCADE)
+    hospital = models.ForeignKey("hospital.Hospital", on_delete=models.CASCADE, blank=True, null=True) 
     reporting_to=models.ForeignKey('User',on_delete=models.SET_NULL,blank=True,null=True, 
                                    related_name="subordinates")
     

@@ -1,7 +1,9 @@
 from django.db import models
 from apps.Address.models import TimestampAwareModel,Address
-from apps.users.models import User
+from django.contrib.auth import get_user_model
 from apps.licenses.models import License
+
+User = get_user_model()
 
 class Hospital(TimestampAwareModel):
     name = models.CharField(max_length=200, unique=True)

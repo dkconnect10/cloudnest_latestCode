@@ -48,12 +48,12 @@ INSTALLED_APPS = [
     'apps.Address',
     'apps.hospital',
     'apps.licenses',
-    'apps.home',
     
     # frontend third party
     'corsheaders',
 
     # thired party installation
+    'drf_yasg',
     'rest_framework',
     'django_celery_results',
     'django_celery_beat',
@@ -204,6 +204,19 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 import os
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR,'media')
+
+
+# swwager parmission 
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    }
+}
+
 
 
 
