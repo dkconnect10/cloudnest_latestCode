@@ -2,6 +2,9 @@ from .base import *
 
 DEBUG = False
 ALLOWED_HOSTS = [
-    '3.7.69.215',
-    'ec2-3-7-69-215.ap-south-1.compute.amazonaws.com',
-    ]
+    '127.0.0.1',
+    'localhost',
+    'ec2-65-2-39-41.ap-south-1.compute.amazonaws.com',
+    '65.2.39.41',
+]
+
