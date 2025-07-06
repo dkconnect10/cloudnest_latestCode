@@ -4,6 +4,7 @@ from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from django.shortcuts import redirect
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
 schema_view = get_schema_view(
@@ -16,7 +17,8 @@ schema_view = get_schema_view(
         license=openapi.License(name="MIT License"),
     ),
     public=True,
-    permission_classes=(permissions.AllowAny,),  # Allow all users
+    permission_classes=(permissions.AllowAny,),
+    authentication_classes=(JWTAuthentication,),
 )
 
 
