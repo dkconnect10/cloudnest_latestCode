@@ -40,7 +40,7 @@ class HospitalCreateSerializer(ModelSerializer):
         validated_data.pop("address", None)
         validated_data.pop("license", None)
 
-        hospital = Hospital.objects.get_or_create(
+        hospital,_= Hospital.objects.get_or_create(
             owner=request.user,
             address=address,
             license=license,
