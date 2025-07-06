@@ -1,6 +1,6 @@
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from serializers import UserSerializer
+from ..serializers import UserSerializer
 
 def register_or_verify_schema():
     return swagger_auto_schema(
