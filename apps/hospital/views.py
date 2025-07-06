@@ -42,7 +42,7 @@ class CreateHospital(APIView):
                     "issue_date":request.data.get('issue_date'),
                     "expiry_date":request.data.get('expiry_date'),
                     "document":request.data.get('document'),
-                    "is_verified":request.data.get('is_verified')
+                    "is_verified":str(request.data.get('is_verified')).lower =='true'
                     }
                 )
                 hospital_data = {
