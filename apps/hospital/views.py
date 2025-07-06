@@ -6,9 +6,11 @@ from .serializers import HospitalCreateSerializer, HospitalResponseSerializer
 from apps.licenses.models import License
 from django.db import transaction
 from .swagger_docs.hospital_swagger import hospital_create_schema
+from rest_framework.parsers import MultiPartParser, FormParser
 
 class CreateHospital(APIView):
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
     @hospital_create_schema()
     def post(self, request):
         try:
