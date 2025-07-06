@@ -14,12 +14,12 @@ from django.utils.encoding import force_bytes,force_str
 from src.settings.base import  EMAIL_HOST_USER
 from .tasks import userActivation_Task
 from .serializers import UserSerializer
-from apps.users.swagger_docs.user_swagger import register_or_verify_schema
+from apps.users.swagger_docs.user_swagger import *
 
 
 
 class RegisterUser(APIView):
-    @register_or_verify_schema(UserSerializer)
+    @register_or_verify_schema()
     def post(self, request):
         uidb64 = request.query_params.get('uidb64')
         verifyed_token = request.query_params.get('verifyed_token')
@@ -75,6 +75,7 @@ class RegisterUser(APIView):
 
    
 class loginUser(APIView):
+    @login_schema()
     def post(self,request):
         email = request.data.get('email')
         password = request.data.get('password')
@@ -94,6 +95,7 @@ class loginUser(APIView):
                  
 class GetProfile(APIView):
     permission_classes = [IsAuthenticated]
+    @get_profile_schema
     def get(self,request):
         user = request.user
         print(user)
@@ -102,7 +104,7 @@ class GetProfile(APIView):
 
 class UpdateProfile(APIView):
     permission_classes = [IsAuthenticated]
-
+    @update_profile_schema
     def patch(self, request, pk):
         if not pk:
             return Response({"success": False, "message": "User ID is required.", "status_code": 400}, status=400)
@@ -124,12 +126,14 @@ class UpdateProfile(APIView):
                     
 class logoutUser(APIView):
     permission_classes=[IsAuthenticated]
+    @logout_schema
     def post(self,request):
                 logout(request)
                 return Response({"user profile logout successfully"},status=status.HTTP_200_OK)
             
 class ResetPassword(APIView):
     permission_classes=[IsAuthenticated]
+    @reset_password_schema
     def post(self,request):
         old_password=request.data.get('old_password')
         new_password=request.data.get('new_password')
@@ -151,6 +155,7 @@ class ResetPassword(APIView):
         return Response({"message":"Password update successfully"},status=status.HTTP_200_OK)
        
 class forgotPassword(APIView):
+    @forgot_password_schema
     def post(self,request):
         email = request.data.get('email')
         uidb64 = request.data.get('uid')
@@ -204,6 +209,7 @@ class forgotPassword(APIView):
 
 class AccountDeletion(APIView):
     permission_classes=[IsAuthenticated]
+    @account_delete_schema
     def post(self,request):
         user = request.user
         
@@ -216,7 +222,7 @@ class AccountDeletion(APIView):
     
 class AccountDeactivationReactivation(APIView):
     permission_classes = [IsAuthenticated]
-
+    @account_toggle_schema
     def post(self, request):
         is_active = request.data.get('is_active')
         if is_active is None:

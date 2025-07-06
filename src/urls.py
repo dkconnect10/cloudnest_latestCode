@@ -7,18 +7,17 @@ from django.shortcuts import redirect
 
 
 schema_view = get_schema_view(
-   openapi.Info(
-      title="My Project API",
-      default_version='v1',
-      description="API documentation for My Project",
-      terms_of_service="https://www.google.com/policies/terms/",
-      contact=openapi.Contact(email="your@email.com"),
-      license=openapi.License(name="MIT License"),
-   ),
-   public=True,
-   permission_classes=[permissions.AllowAny],
+    openapi.Info(
+        title="CloudNest API",
+        default_version='v1',
+        description="Hospital Management APIs - Swagger Docs",
+        terms_of_service="https://www.google.com/policies/terms/",
+        contact=openapi.Contact(email="dilipkumarconnect@gmail.com"),
+        license=openapi.License(name="MIT License"),
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),  # Allow all users
 )
-
 
 
 
