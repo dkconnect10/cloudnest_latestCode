@@ -3,40 +3,31 @@ from drf_yasg import openapi
 
 def hospital_create_schema():
     return swagger_auto_schema(
-        operation_description="Create hospital with inline Address and License details (no need to pass IDs)",
-        manual_parameters=[],
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                # HOSPITAL FIELDS
-                'name': openapi.Schema(type=openapi.TYPE_STRING),
-                'email': openapi.Schema(type=openapi.TYPE_STRING, format='email'),
-                'phone': openapi.Schema(type=openapi.TYPE_STRING),
-                'website': openapi.Schema(type=openapi.TYPE_STRING),
-                'logo': openapi.Schema(type=openapi.TYPE_STRING, format='binary'),
-                'established_year': openapi.Schema(type=openapi.TYPE_INTEGER),
-                'Approval': openapi.Schema(type=openapi.TYPE_STRING),
+        operation_description="Create Hospital with nested address and license data (multipart/form-data)",
+        manual_parameters=[
+            # Hospital fields
+            openapi.Parameter('name', openapi.IN_FORM, type=openapi.TYPE_STRING, required=True),
+            openapi.Parameter('email', openapi.IN_FORM, type=openapi.TYPE_STRING),
+            openapi.Parameter('phone', openapi.IN_FORM, type=openapi.TYPE_STRING),
+            openapi.Parameter('website', openapi.IN_FORM, type=openapi.TYPE_STRING),
+            openapi.Parameter('logo', openapi.IN_FORM, type=openapi.TYPE_FILE),
+            openapi.Parameter('established_year', openapi.IN_FORM, type=openapi.TYPE_INTEGER),
+            openapi.Parameter('Approval', openapi.IN_FORM, type=openapi.TYPE_STRING),
 
-                # ADDRESS FIELDS
-                'address': openapi.Schema(type=openapi.TYPE_STRING),
-                'city': openapi.Schema(type=openapi.TYPE_STRING),
-                'state': openapi.Schema(type=openapi.TYPE_STRING),
-                'country': openapi.Schema(type=openapi.TYPE_STRING),
-                'pincode': openapi.Schema(type=openapi.TYPE_INTEGER),
+            # Address fields
+            openapi.Parameter('address', openapi.IN_FORM, type=openapi.TYPE_STRING),
+            openapi.Parameter('city', openapi.IN_FORM, type=openapi.TYPE_STRING),
+            openapi.Parameter('state', openapi.IN_FORM, type=openapi.TYPE_STRING),
+            openapi.Parameter('country', openapi.IN_FORM, type=openapi.TYPE_STRING),
+            openapi.Parameter('pincode', openapi.IN_FORM, type=openapi.TYPE_INTEGER),
 
-                # LICENSE FIELDS
-                'license_number': openapi.Schema(type=openapi.TYPE_STRING),
-                'issued_by': openapi.Schema(type=openapi.TYPE_STRING),
-                'issue_date': openapi.Schema(type=openapi.TYPE_STRING, format='date'),
-                'expiry_date': openapi.Schema(type=openapi.TYPE_STRING, format='date'),
-                'document': openapi.Schema(type=openapi.TYPE_STRING, format='binary'),
-                'is_verified': openapi.Schema(type=openapi.TYPE_BOOLEAN),
-            },
-            required=['name', 'email', 'phone', 'website', 'address', 'city', 'state', 'country', 'pincode', 'license_number', 'issued_by', 'issue_date', 'expiry_date']
-        ),
-        responses={
-            201: openapi.Response("Hospital created successfully"),
-            400: "Invalid input",
-            401: "Unauthorized"
-        }
+            # License fields
+            openapi.Parameter('license_number', openapi.IN_FORM, type=openapi.TYPE_STRING),
+            openapi.Parameter('issued_by', openapi.IN_FORM, type=openapi.TYPE_STRING),
+            openapi.Parameter('issue_date', openapi.IN_FORM, type=openapi.TYPE_STRING, format='date'),
+            openapi.Parameter('expiry_date', openapi.IN_FORM, type=openapi.TYPE_STRING, format='date'),
+            openapi.Parameter('document', openapi.IN_FORM, type=openapi.TYPE_FILE),
+            openapi.Parameter('is_verified', openapi.IN_FORM, type=openapi.TYPE_BOOLEAN),
+        ],
+        responses={201: openapi.Response("Hospital created successfully")},
     )
