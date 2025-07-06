@@ -6,9 +6,11 @@ from .permissions import IsDoctorOrAdmin
 from rest_framework.permissions import IsAuthenticated,IsAdminUser
 from rest_framework.response import Response
 from .serializers import DoctorSerializer
+from .swagger_docs.user_swagger import doctor_create_schema
 
 class Doctors(APIView):
     permission_classes=[IsAuthenticated]
+    @doctor_create_schema()
     def post(self,request):
         try:
             required_fields=['specialization', 'experience_years', 'license_number', 'issued_by', 'issue_date', 'expiry_date', 'address', 'state', 'country', 'pincode', 'role']

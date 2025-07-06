@@ -5,9 +5,11 @@ from apps.Address.models import Address
 from .serializers import HospitalCreateSerializer, HospitalResponseSerializer
 from apps.licenses.models import License
 from django.db import transaction
+from .swagger_docs.hospital_swagger import hospital_create_schema
 
 class CreateHospital(APIView):
     permission_classes = [IsAuthenticated]
+    @hospital_create_schema()
     def post(self, request):
         try:
             with transaction.atomic():
