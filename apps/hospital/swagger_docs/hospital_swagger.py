@@ -27,7 +27,8 @@ def hospital_create_schema():
             openapi.Parameter('issue_date', openapi.IN_FORM, type=openapi.TYPE_STRING, format='date'),
             openapi.Parameter('expiry_date', openapi.IN_FORM, type=openapi.TYPE_STRING, format='date'),
             openapi.Parameter('document', openapi.IN_FORM, type=openapi.TYPE_FILE),
-            openapi.Parameter('is_verified', openapi.IN_FORM, type=openapi.TYPE_BOOLEAN),
+            openapi.Parameter(name='is_verified',in_=openapi.IN_FORM,type=openapi.TYPE_STRING,enum=['true', 'false'],
+                            description="Pass 'true' or 'false' as string")
         ],
         responses={201: openapi.Response("Hospital created successfully")},
     )
