@@ -1,7 +1,8 @@
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from ..serializers import UserSerializer
+from ..serializers import UserSerializer,updateUserserializer
 
+# register Profile
 def register_or_verify_schema():
     return swagger_auto_schema(
         request_body=UserSerializer,  
@@ -19,6 +20,7 @@ def register_or_verify_schema():
         }
     )
 
+# login Profile
 def login_schema():
     return swagger_auto_schema(
         request_body=openapi.Schema(
@@ -40,13 +42,13 @@ def login_schema():
 def get_profile_schema():
     return swagger_auto_schema(
         operation_description="Fetch authenticated user profile",
-        responses={200: openapi.Response("User profile", UserSerializer.updateUserserializer)}
+        responses={200: openapi.Response("User profile", updateUserserializer)}
     )
 
 # Update Profile
 def update_profile_schema():
     return swagger_auto_schema(
-        request_body=UserSerializer.updateUserserializer,
+        request_body=updateUserserializer,
         operation_description="Update authenticated user profile",
         manual_parameters=[
             openapi.Parameter('pk', openapi.IN_PATH, description="User ID", type=openapi.TYPE_INTEGER),
