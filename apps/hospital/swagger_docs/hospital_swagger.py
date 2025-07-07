@@ -32,3 +32,38 @@ def hospital_create_schema():
         ],
         responses={201: openapi.Response("Hospital created successfully")},
     )
+
+
+def hospital_users_schema():
+    return swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'hospital_id',
+                openapi.IN_QUERY,
+                description="ID of the hospital to fetch users from",
+                type=openapi.TYPE_INTEGER,
+                required=True
+            )
+        ],
+        operation_description="Get all users belonging to a specific hospital",
+        responses={
+            200: openapi.Response(
+                description="List of user information",
+                examples={
+                    "application/json": {
+                        "User_Information": [
+                            {
+                                "full_name": "Dr. John Doe",
+                                "address": "123 Street, City, State, 123456",
+                                "role": "Doctor",
+                                "hospital": "City Hospital",
+                                "reporting_to": "Dr. Jane Smith"
+                            }
+                        ],
+                        "status": 200
+                    }
+                }
+            ),
+            404: "Hospital ID is required or no users found"
+        }
+    )

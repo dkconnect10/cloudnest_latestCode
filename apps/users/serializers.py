@@ -72,3 +72,4 @@ class UserDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model= UserDetails
         fields=['user_obj','role','address','reporting_to']        
+
