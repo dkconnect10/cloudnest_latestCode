@@ -33,7 +33,6 @@ def hospital_create_schema():
         responses={201: openapi.Response("Hospital created successfully")},
     )
 
-
 def hospital_users_schema():
     return swagger_auto_schema(
         manual_parameters=[
@@ -67,3 +66,69 @@ def hospital_users_schema():
             404: "Hospital ID is required or no users found"
         }
     )
+    
+def hospital_update_schema():
+    return swagger_auto_schema(
+        method='patch',
+        operation_summary="Update a Hospital",
+        operation_description="""
+        Partially update hospital details including:
+        - Basic info (name, email, phone, logo)
+        - Nested address (address, city, state, country, pincode)
+        - Nested license info (license_number, issued_by, issue_date, expiry_date, document, is_verified)
+        Supports file uploads for `logo` and `license.document`.
+        """,
+        manual_parameters=[
+            openapi.Parameter(
+                name='hospital_id',
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                description='ID of the hospital to update',
+                required=True
+            )
+        ],
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'hospital_details': openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'name': openapi.Schema(type=openapi.TYPE_STRING, description="Hospital name"),
+                        'email': openapi.Schema(type=openapi.TYPE_STRING, description="Hospital email"),
+                        'phone': openapi.Schema(type=openapi.TYPE_STRING, description="Hospital phone number"),
+                        'logo': openapi.Schema(type=openapi.TYPE_FILE, description="Hospital logo image"),
+                        'address': openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'address': openapi.Schema(type=openapi.TYPE_STRING),
+                                'city': openapi.Schema(type=openapi.TYPE_STRING),
+                                'state': openapi.Schema(type=openapi.TYPE_STRING),
+                                'country': openapi.Schema(type=openapi.TYPE_STRING),
+                                'pincode': openapi.Schema(type=openapi.TYPE_STRING),
+                            }
+                        ),
+                        'license': openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'license_number': openapi.Schema(type=openapi.TYPE_STRING),
+                                'issued_by': openapi.Schema(type=openapi.TYPE_STRING),
+                                'issue_date': openapi.Schema(type=openapi.TYPE_STRING, format='date'),
+                                'expiry_date': openapi.Schema(type=openapi.TYPE_STRING, format='date'),
+                                'document': openapi.Schema(type=openapi.TYPE_FILE, description="License document file"),
+                                'is_verified': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                            }
+                        )
+                    }
+                )
+            },
+            required=['hospital_details']
+        ),
+        consumes=['multipart/form-data'],
+        responses={
+            200: openapi.Response(description='Hospital updated successfully'),
+            404: openapi.Response(description='Hospital ID is required'),
+            401: openapi.Response(description='Hospital not found'),
+            501: openapi.Response(description='Validation or update error'),
+        }
+    )
+    

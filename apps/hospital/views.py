@@ -82,7 +82,6 @@ class CreateHospital(APIView):
         except Exception as e:
             return Response({"error": str(e), "status": 501})
 
-
 class Hospital_Users(APIView):
     permission_classes = [IsAuthenticated]
     @hospital_users_schema()
