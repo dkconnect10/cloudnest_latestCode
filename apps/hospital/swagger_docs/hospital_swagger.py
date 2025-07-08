@@ -123,3 +123,49 @@ def hospital_update_schema():
             501: openapi.Response(description='Validation or update error'),
         }
     )
+
+def hospital_details_schema():
+    return swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'hospital_id',
+                openapi.IN_QUERY,
+                description="ID of the hospital to fetch (Optional)",
+                type=openapi.TYPE_INTEGER,
+                required=False
+            )
+        ],
+        operation_description="Get a single hospital by ID or list of all hospitals if no ID is provided.",
+        responses={
+            200: openapi.Response(
+                description="Hospital details or list",
+                examples={
+                    "application/json": {
+                        "message": "Hospital fetched successfully",
+                        "data": {
+                            "id": 1,
+                            "name": "City Care Hospital",
+                            "email": "info@citycare.com",
+                            "phone": "+91-9876543210",
+                            "address": "123, Residency Road, Jaipur",
+                            "city": "Jaipur",
+                            "state": "Rajasthan",
+                            "country": "India",
+                            "pincode": "302001",
+                            "license_number": "RJ-HSP-2024-00123",
+                            "issued_by": "Health Dept",
+                            "issue_date": "2025-07-08",
+                            "expiry_date": "2030-07-08",
+                            "is_verified": True
+                        }
+                    }
+                }
+            ),
+            404: openapi.Response(
+                description="Hospital not found or invalid ID"
+            ),
+            500: openapi.Response(
+                description="Internal server error"
+            )
+        }
+    )

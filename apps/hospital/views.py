@@ -114,7 +114,6 @@ class Hospital_Users(APIView):
 
 class update_Hospital(APIView):
     permission_classes = [IsAuthenticated]
-
     @hospital_update_schema()
     def patch(self, request):
         hospital_id = request.query_params.get('hospital_id')
@@ -175,8 +174,30 @@ class update_Hospital(APIView):
             "status": 501
         }, status=501)
    
-        
-        
+class HospitalListOrDetailView(APIView):
+    permission_classes=[IsAuthenticated]
+    @hospital_details_schema()
+    def get(self,request):
+        hospital_id = request.query_params.get('hospital_id')
+        try:
+            if hospital_id:
+                hospital_instance = Hospital.objects.filter(id=hospital_id).first()
+                
+                if hospital_instance:
+                    serializer = HospitalResponseSerializer(hospital_instance)
+                    return Response({"message":"Hospital Get successfully","Data":serializer.data},status=200)
+                return Response({"message":"hospoital not found"},status=404)
+            hospital_instance = Hospital.objects.all()
+            serializer = HospitalResponseSerializer(hospital_instance,many=True)
+            return Response({"message":"Hospitals fetched successfully","Data":serializer.data},status=200)
+        except Exception as e :
+            return Response({"error":str(e)},status=500)
+            
+class HospitalUserCreate(APIView):
+    pass
+
+class AssignUserRole(APIView):
+    pass                             
         
   
                 
