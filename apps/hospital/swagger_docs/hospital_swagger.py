@@ -1,5 +1,6 @@
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from apps.users.serializers import UserSerializer
 
 def hospital_create_schema():
     return swagger_auto_schema(
@@ -167,5 +168,35 @@ def hospital_details_schema():
             500: openapi.Response(
                 description="Internal server error"
             )
+        }
+    )
+
+def register_or_verify_schema():
+    return swagger_auto_schema(
+        operation_summary="Register or Verify User",
+        operation_description="Register a new user OR Verify email using uidb64 and token from query parameters.",
+        request_body=UserSerializer,
+        manual_parameters=[
+            openapi.Parameter(
+                name='uidb64',
+                in_=openapi.IN_QUERY,
+                description='Base64 encoded user ID',
+                type=openapi.TYPE_STRING,
+                required=False
+            ),
+            openapi.Parameter(
+                name='verifyed_token',
+                in_=openapi.IN_QUERY,
+                description='Verification token for email',
+                type=openapi.TYPE_STRING,
+                required=False
+            )
+        ],
+        responses={
+            201: openapi.Response(description="User registered successfully"),
+            202: openapi.Response(description="User verified successfully"),
+            400: openapi.Response(description="Bad request"),
+            401: openapi.Response(description="Unauthorized - Invalid token or user not found"),
+            500: openapi.Response(description="Internal server error - Email sending failed"),
         }
     )

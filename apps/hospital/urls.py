@@ -5,5 +5,8 @@ urlpatterns = [
     path('create/',CreateHospital.as_view(),name='CreateHospital'),
     path('Hospital_Users/',Hospital_Users.as_view(),name='Hospital_Users'),
     path("update_hospital/",update_Hospital.as_view(),name='update_Hospital'),
-    path('HospitalListOrDetailView/',HospitalListOrDetailView.as_view(),name="HospitalListOrDetailView")
+    path('HospitalListOrDetailView/',HospitalListOrDetailView.as_view(),name="HospitalListOrDetailView"),
+    path('HospitalUserCreate/',HospitalUserCreate.as_view(),name='HospitalUserCreate'),
 ]
+
+

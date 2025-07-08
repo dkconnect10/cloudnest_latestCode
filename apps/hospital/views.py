@@ -10,6 +10,17 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from apps.users.models import UserDetails
 from .models import Hospital
 from .serializers import HospitalCreateSerializer
+from apps.users.serializers import UserSerializer
+from apps.users.views import RegisterUser
+from django.contrib.auth import get_user_model
+from django.core.mail import send_mail  
+from django.contrib.auth.tokens import PasswordResetTokenGenerator 
+from django.utils.http import urlsafe_base64_encode,urlsafe_base64_decode
+from django.utils.encoding import force_bytes,force_str
+from src.settings.base import  EMAIL_HOST_USER
+from rest_framework import status
+
+User = get_user_model()
 
 class CreateHospital(APIView):
     permission_classes = [IsAuthenticated]
@@ -194,12 +205,64 @@ class HospitalListOrDetailView(APIView):
             return Response({"error":str(e)},status=500)
             
 class HospitalUserCreate(APIView):
-    pass
+    permission_classes = [IsAuthenticated]
+    @register_or_verify_schema()
+    def post(self, request):
+        uidb64 = request.query_params.get('uidb64')
+        verifyed_token = request.query_params.get('verifyed_token')
+
+        try:
+            if not uidb64 and not verifyed_token:
+                serializer = UserSerializer(data=request.data)
+                if serializer.is_valid():
+                    serializer.save()
+
+                    email = serializer.validated_data.get("email")
+                    user = User.objects.get(email=email)
+                    token_generator = PasswordResetTokenGenerator()
+                    token = token_generator.make_token(user)
+                    uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+                    verify_link = f"http://localhost:3000/verify-email?uid={uid}&token={token}"
+                    try:
+                        send_mail(
+                            subject='Verify your Email',
+                            message=f"Click the link to verify your email:\n{verify_link}",
+                            from_email=EMAIL_HOST_USER,
+                            recipient_list=[email],
+                            fail_silently=False,
+                        )
+                    except Exception as e:
+                        return Response({"error": f"Failed to send email. Reason: {str(e)}"}, status=500)
+
+                    return Response({"message": "User registered. Verification email sent.","token":token,"uid":uid}, status=201)
+                else:
+                    return Response(serializer.errors, status=400)
+
+            
+            if uidb64 and verifyed_token:
+                try:
+                    uid = force_str(urlsafe_base64_decode(uidb64))
+                    user = User.objects.get(pk=uid)
+                except (User.DoesNotExist, ValueError, TypeError):
+                    return Response({"message": "User not found"}, status=status.HTTP_401_UNAUTHORIZED)
+
+                token_generator = PasswordResetTokenGenerator()
+                if not token_generator.check_token(user, verifyed_token):
+                    return Response({"message": "Invalid or expired token"}, status=status.HTTP_401_UNAUTHORIZED)
+
+                user.is_active = True
+                user.is_email_verified = True
+                user.save()
+                return Response({"message": "User verified successfully"}, status=status.HTTP_202_ACCEPTED)
+
+            return Response({"error": "Invalid request: either provide registration data or verification parameters"}, status=400)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
 
 class AssignUserRole(APIView):
     pass                             
-        
-  
                 
             
             
