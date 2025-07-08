@@ -114,7 +114,7 @@ class Hospital_Users(APIView):
 
 class update_Hospital(APIView):
     permission_classes = [IsAuthenticated]
-
+    @hospital_update_schema()
     def patch(self, request):
         hospital_id = request.query_params.get('hospital_id')
         print("Hospital ID:", hospital_id)
