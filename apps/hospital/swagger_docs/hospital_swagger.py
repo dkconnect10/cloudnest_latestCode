@@ -67,7 +67,7 @@ def hospital_users_schema():
         }
     )
     
-def hospital_update_schema():
+def hospital_update_schema(func):
     return swagger_auto_schema(
         method='patch',
         operation_summary="Update a Hospital",
@@ -130,5 +130,4 @@ def hospital_update_schema():
             401: openapi.Response(description='Hospital not found'),
             501: openapi.Response(description='Validation or update error'),
         }
-    )
-    
+    )(func)
