@@ -114,10 +114,10 @@ class Hospital_Users(APIView):
 
 class update_Hospital(APIView):
     permission_classes = [IsAuthenticated]
+
+    @hospital_update_schema()
     def patch(self, request):
         hospital_id = request.query_params.get('hospital_id')
-        print("Hospital ID:", hospital_id)
-
         if not hospital_id:
             return Response({"message": "hospital id is required", "status": 404}, status=404)
 
@@ -126,43 +126,41 @@ class update_Hospital(APIView):
         except Hospital.DoesNotExist:
             return Response({"message": "Hospital not exist. Please create new hospital", "status": 401}, status=401)
 
-        hospital_data = request.data.get('hospital_details', {})
-        hospitaladdress = hospital_data.get('address', None)
-        hospitallicense = hospital_data.get('license', None)
+        # Flatten fields
+        data = request.data
+        print("Request Data:", data)
 
-    
-        if hospitaladdress and hospital.address:
-            try:
-                address_instance = Address.objects.get(id=hospital.address.id)
-                address_instance.address = hospitaladdress.get('address', address_instance.address)
-                address_instance.city = hospitaladdress.get('city', address_instance.city)
-                address_instance.state = hospitaladdress.get('state', address_instance.state)
-                address_instance.country = hospitaladdress.get('country', address_instance.country)
-                address_instance.pincode = hospitaladdress.get('pincode', address_instance.pincode)
-                address_instance.save()
-                print("Address updated successfully")
-            except Exception as e:
-                print("Address update failed:", e)
+        # Address update
+        if hospital.address:
+            address_instance = hospital.address
+            address_instance.address = data.get('address', address_instance.address)
+            address_instance.city = data.get('city', address_instance.city)
+            address_instance.state = data.get('state', address_instance.state)
+            address_instance.country = data.get('country', address_instance.country)
+            address_instance.pincode = data.get('pincode', address_instance.pincode)
+            address_instance.save()
 
-        if hospitallicense and hospital.license:
-            try:
-                license_instance = License.objects.get(id=hospital.license.id)
-                license_instance.license_number = hospitallicense.get('license_number', license_instance.license_number)
-                license_instance.issued_by = hospitallicense.get('issued_by', license_instance.issued_by)
-                license_instance.issue_date = hospitallicense.get('issue_date', license_instance.issue_date)
-                license_instance.expiry_date = hospitallicense.get('expiry_date', license_instance.expiry_date)
-                license_instance.document = hospitallicense.get('document', license_instance.document)
-                license_instance.is_verified = hospitallicense.get('is_verified', license_instance.is_verified)
-                license_instance.save()
-                print("License updated successfully")
-            except Exception as e:
-                print("License update failed:", e)
+        # License update
+        if hospital.license:
+            license_instance = hospital.license
+            license_instance.license_number = data.get('license_number', license_instance.license_number)
+            license_instance.issued_by = data.get('issued_by', license_instance.issued_by)
+            license_instance.issue_date = data.get('issue_date', license_instance.issue_date)
+            license_instance.expiry_date = data.get('expiry_date', license_instance.expiry_date)
+            license_instance.document = data.get('document', license_instance.document)
+            license_instance.is_verified = data.get('is_verified', license_instance.is_verified)
+            license_instance.save()
 
-        hospital_data.pop('address', None)
-        hospital_data.pop('license', None)
+        # Main hospital update
+        update_fields = {
+            "name": data.get("name"),
+            "email": data.get("email"),
+            "phone": data.get("phone"),
+            "logo": data.get("logo"),
+        }
+        update_fields = {k: v for k, v in update_fields.items() if v is not None}
 
-        serializer = HospitalCreateSerializer(hospital, data=hospital_data, partial=True)
-        print("Serializer data:", hospital_data)
+        serializer = HospitalCreateSerializer(hospital, data=update_fields, partial=True)
 
         if serializer.is_valid():
             serializer.save()
@@ -171,14 +169,12 @@ class update_Hospital(APIView):
                 "updated Data": serializer.data
             }, status=200)
 
-        print("Hospital update error:", serializer.errors)
         return Response({
             "message": "Something went wrong while updating Hospital details",
             "errors": serializer.errors,
             "status": 501
         }, status=501)
-
-        
+   
         
         
         

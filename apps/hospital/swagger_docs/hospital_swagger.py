@@ -66,61 +66,54 @@ def hospital_users_schema():
             404: "Hospital ID is required or no users found"
         }
     )
-    
+
 def hospital_update_schema():
     return swagger_auto_schema(
         operation_summary="Update a Hospital",
         operation_description="""
-        Partially update hospital details including:
-        - Basic info (name, email, phone, logo)
-        - Nested address (address, city, state, country, pincode)
-        - Nested license info (license_number, issued_by, issue_date, expiry_date, document, is_verified)
-        Supports file uploads for `logo` and `license.document`.
+        This API partially updates the Hospital details.
+        
+        **Supports:**
+        - Basic Info: `name`, `email`, `phone`, `logo` (file)
+        - Address: `address`, `city`, `state`, `country`, `pincode`
+        - License: `license_number`, `issued_by`, `issue_date`, `expiry_date`, `document` (file), `is_verified`
+        
+        🔐 Requires Auth Token  
+        📎 Use `multipart/form-data` for file upload.
         """,
         manual_parameters=[
             openapi.Parameter(
                 name='hospital_id',
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_INTEGER,
-                description='ID of the hospital to update',
-                required=True
+                required=True,
+                description='ID of the hospital to update'
             )
         ],
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
-                'hospital_details': openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        'name': openapi.Schema(type=openapi.TYPE_STRING),
-                        'email': openapi.Schema(type=openapi.TYPE_STRING),
-                        'phone': openapi.Schema(type=openapi.TYPE_STRING),
-                        'logo': openapi.Schema(type=openapi.TYPE_FILE),
-                        'address': openapi.Schema(
-                            type=openapi.TYPE_OBJECT,
-                            properties={
-                                'address': openapi.Schema(type=openapi.TYPE_STRING),
-                                'city': openapi.Schema(type=openapi.TYPE_STRING),
-                                'state': openapi.Schema(type=openapi.TYPE_STRING),
-                                'country': openapi.Schema(type=openapi.TYPE_STRING),
-                                'pincode': openapi.Schema(type=openapi.TYPE_STRING),
-                            }
-                        ),
-                        'license': openapi.Schema(
-                            type=openapi.TYPE_OBJECT,
-                            properties={
-                                'license_number': openapi.Schema(type=openapi.TYPE_STRING),
-                                'issued_by': openapi.Schema(type=openapi.TYPE_STRING),
-                                'issue_date': openapi.Schema(type=openapi.TYPE_STRING, format='date'),
-                                'expiry_date': openapi.Schema(type=openapi.TYPE_STRING, format='date'),
-                                'document': openapi.Schema(type=openapi.TYPE_FILE),
-                                'is_verified': openapi.Schema(type=openapi.TYPE_BOOLEAN),
-                            }
-                        )
-                    }
-                )
+                'name': openapi.Schema(type=openapi.TYPE_STRING),
+                'email': openapi.Schema(type=openapi.TYPE_STRING),
+                'phone': openapi.Schema(type=openapi.TYPE_STRING),
+                'logo': openapi.Schema(type=openapi.TYPE_FILE),
+
+                # Address fields
+                'address': openapi.Schema(type=openapi.TYPE_STRING),
+                'city': openapi.Schema(type=openapi.TYPE_STRING),
+                'state': openapi.Schema(type=openapi.TYPE_STRING),
+                'country': openapi.Schema(type=openapi.TYPE_STRING),
+                'pincode': openapi.Schema(type=openapi.TYPE_STRING),
+
+                # License fields
+                'license_number': openapi.Schema(type=openapi.TYPE_STRING),
+                'issued_by': openapi.Schema(type=openapi.TYPE_STRING),
+                'issue_date': openapi.Schema(type=openapi.TYPE_STRING, format='date'),
+                'expiry_date': openapi.Schema(type=openapi.TYPE_STRING, format='date'),
+                'document': openapi.Schema(type=openapi.TYPE_FILE),
+                'is_verified': openapi.Schema(type=openapi.TYPE_BOOLEAN),
             },
-            required=['hospital_details']
+            required=[]  # All are optional for PATCH
         ),
         consumes=['multipart/form-data'],
         responses={
