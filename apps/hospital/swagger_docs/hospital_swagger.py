@@ -67,9 +67,8 @@ def hospital_users_schema():
         }
     )
     
-def hospital_update_schema(func):
+def hospital_update_schema():
     return swagger_auto_schema(
-        method='patch',
         operation_summary="Update a Hospital",
         operation_description="""
         Partially update hospital details including:
@@ -93,10 +92,10 @@ def hospital_update_schema(func):
                 'hospital_details': openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'name': openapi.Schema(type=openapi.TYPE_STRING, description="Hospital name"),
-                        'email': openapi.Schema(type=openapi.TYPE_STRING, description="Hospital email"),
-                        'phone': openapi.Schema(type=openapi.TYPE_STRING, description="Hospital phone number"),
-                        'logo': openapi.Schema(type=openapi.TYPE_FILE, description="Hospital logo image"),
+                        'name': openapi.Schema(type=openapi.TYPE_STRING),
+                        'email': openapi.Schema(type=openapi.TYPE_STRING),
+                        'phone': openapi.Schema(type=openapi.TYPE_STRING),
+                        'logo': openapi.Schema(type=openapi.TYPE_FILE),
                         'address': openapi.Schema(
                             type=openapi.TYPE_OBJECT,
                             properties={
@@ -114,7 +113,7 @@ def hospital_update_schema(func):
                                 'issued_by': openapi.Schema(type=openapi.TYPE_STRING),
                                 'issue_date': openapi.Schema(type=openapi.TYPE_STRING, format='date'),
                                 'expiry_date': openapi.Schema(type=openapi.TYPE_STRING, format='date'),
-                                'document': openapi.Schema(type=openapi.TYPE_FILE, description="License document file"),
+                                'document': openapi.Schema(type=openapi.TYPE_FILE),
                                 'is_verified': openapi.Schema(type=openapi.TYPE_BOOLEAN),
                             }
                         )
@@ -130,4 +129,4 @@ def hospital_update_schema(func):
             401: openapi.Response(description='Hospital not found'),
             501: openapi.Response(description='Validation or update error'),
         }
-    )(func)
+    )
