@@ -262,7 +262,11 @@ class HospitalUserCreate(APIView):
             return Response({"error": str(e)}, status=500)
 
 class AssignUserRole(APIView):
-    pass                             
+    permission_classes=[IsAuthenticated]
+    def post(self,request,id):
+        UserDetails.objects.select_related('role').filter(hospital=id)
+                            
+                                   
                 
             
             
