@@ -3,7 +3,7 @@ from .models import Hospital
 from apps.Address.models import Address
 from apps.Address.serializers import Address_seriliaztion
 from apps.users.serializers import UserSerializer
-from apps.users.models import UserDetails,Role
+from apps.users.models import UserDetails,Role,UserRole,UserHospital
 from apps.licenses.models import License
 from apps.licenses.serializers import LicenseSerializer
 from rest_framework import serializers
@@ -48,15 +48,20 @@ class HospitalCreateSerializer(ModelSerializer):
         )
 
         role = Role.objects.filter(name='Hospital Director').first()
+    
         if not role:
             raise ValueError("Role 'Hospital Director' does not exist.")
+        
+        userrole, _ = UserRole.objects.get_or_create(user=request.user, defaults={"role": role})
+        userhospital, _ = UserHospital.objects.get_or_create(user=request.user, defaults={"hospital": hospital})
 
+        
         UserDetails.objects.get_or_create(
         user_obj=request.user,
         defaults={
             "address": address,
-            "role": role,
-            "hospital": hospital,
+            "role": userrole,
+            "hospital": userhospital,
             "reporting_to": request.user,
         }
         )

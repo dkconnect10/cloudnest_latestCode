@@ -10,7 +10,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'email', 'username', 'password', 'avatar',
-            'full_name', 'phone', 'signup_source'
+            'full_name', 'phone', 'signup_source','gender'
         ]
         extra_kwargs = {
             'signup_source': {'default': 'website'},

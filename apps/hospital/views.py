@@ -19,6 +19,8 @@ from django.utils.http import urlsafe_base64_encode,urlsafe_base64_decode
 from django.utils.encoding import force_bytes,force_str
 from src.settings.base import  EMAIL_HOST_USER
 from rest_framework import status
+from apps.users.models import UserHospital
+from apps.Address.serializers import Address_seriliaztion
 
 User = get_user_model()
 
@@ -207,18 +209,71 @@ class HospitalListOrDetailView(APIView):
 class HospitalUserCreate(APIView):
     permission_classes = [IsAuthenticated]
     @register_or_verify_schema()
-    def post(self, request):
+    def post(self, request,id):
         uidb64 = request.query_params.get('uidb64')
         verifyed_token = request.query_params.get('verifyed_token')
 
         try:
-            if not uidb64 and not verifyed_token:
-                serializer = UserSerializer(data=request.data)
-                if serializer.is_valid():
-                    serializer.save()
+            with transaction.atomic():
+                if not uidb64 and not verifyed_token:
+                    required_fields = [
+                        'email', 'username', 'password', 'avatar',
+                        'full_name', 'phone', 'signup_source','gender',
+                        'address','city', 'state', 'country', 'pincode',
+                        ]
+                    print(request.data)
+                    missing = [field for field in required_fields if not request.data.get(field)]
+                    
+                    if missing:
+                        return Response({"error": f"Missing fields: {', '.join(missing)}"}, status=400)
+                    
+                    user_data = {
+                        "email":request.data.get('email'),
+                        "username":request.data.get('username'),
+                        "full_name":request.data.get('full_name'),
+                        "phone":request.data.get('phone'),
+                        "gender":request.data.get('gender'),
+                        "password":request.data.get('password'),
+                        "avatar":request.data.get('avatar')
+                        }
+                    print(user_data)
+                    
+                    address_data={
+                        "address":request.data.get('address'),
+                        "city":request.data.get('city'),
+                        "state":request.data.get('state'),
+                        "country":request.data.get('country'),
+                        "pincode":request.data.get('pincode')
+                        }
+                    print(address_data)
+                    
+                    
+                    existingUser= User.objects.filter(email=user_data.get('email')).first()
+                    if existingUser:
+                        serializer = UserSerializer(existingUser,data=user_data,partial=True)
+                    else:
+                        serializer = UserSerializer(data=user_data)   
+                    
+                    if serializer.is_valid():
+                        userInstance = serializer.save()    
 
+                    try:
+                        hospital = Hospital.objects.get(id=id)
+                        print(hospital)
+                    except:
+                        return Response({"error": "Hospital not found."}, status=404)    
+                                
+                    userhospital, _ = UserHospital.objects.get_or_create(user=userInstance,hospital=hospital)
+                    print(userhospital)
+                    
+                    address_serializer = Address_seriliaztion(data=address_data)
+                    if address_serializer.is_valid():
+                        address_serializer.save()
+                    
                     email = serializer.validated_data.get("email")
+                    print(email)
                     user = User.objects.get(email=email)
+                    print(user)
                     token_generator = PasswordResetTokenGenerator()
                     token = token_generator.make_token(user)
                     uid = urlsafe_base64_encode(force_bytes(user.pk))
@@ -239,27 +294,28 @@ class HospitalUserCreate(APIView):
                 else:
                     return Response(serializer.errors, status=400)
 
-            
-            if uidb64 and verifyed_token:
-                try:
-                    uid = force_str(urlsafe_base64_decode(uidb64))
-                    user = User.objects.get(pk=uid)
-                except (User.DoesNotExist, ValueError, TypeError):
-                    return Response({"message": "User not found"}, status=status.HTTP_401_UNAUTHORIZED)
+                
+                if uidb64 and verifyed_token:
+                    try:
+                        uid = force_str(urlsafe_base64_decode(uidb64))
+                        user = User.objects.get(pk=uid)
+                    except (User.DoesNotExist, ValueError, TypeError):
+                        return Response({"message": "User not found"}, status=status.HTTP_401_UNAUTHORIZED)
 
-                token_generator = PasswordResetTokenGenerator()
-                if not token_generator.check_token(user, verifyed_token):
-                    return Response({"message": "Invalid or expired token"}, status=status.HTTP_401_UNAUTHORIZED)
+                    token_generator = PasswordResetTokenGenerator()
+                    if not token_generator.check_token(user, verifyed_token):
+                        return Response({"message": "Invalid or expired token"}, status=status.HTTP_401_UNAUTHORIZED)
 
-                user.is_active = True
-                user.is_email_verified = True
-                user.save()
-                return Response({"message": "User verified successfully"}, status=status.HTTP_202_ACCEPTED)
+                    user.is_active = True
+                    user.is_email_verified = True
+                    user.save()
+                    return Response({"message": "User verified successfully"}, status=status.HTTP_202_ACCEPTED)
 
-            return Response({"error": "Invalid request: either provide registration data or verification parameters"}, status=400)
+                return Response({"error": "Invalid request: either provide registration data or verification parameters"}, status=400)
 
         except Exception as e:
             return Response({"error": str(e)}, status=500)
+
 
 class AssignUserRole(APIView):
     permission_classes=[IsAuthenticated]

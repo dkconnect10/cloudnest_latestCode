@@ -73,20 +73,20 @@ class Role(TimestampAwareModel):
         return self.name or "Unnamed Role"
 
 class UserRole(TimestampAwareModel):
-    user_details = models.ForeignKey('UserDetails',on_delete=models.CASCADE)
+    user = models.ForeignKey(User,on_delete=models.CASCADE, null=True, blank=True)
     role = models.ForeignKey(Role,on_delete=models.CASCADE)
     
     def __str__(self):
-        return f"{self.user_details.user_obj.username}({self.role.name})"
+        return f"{self.user.username}({self.role.name})"
     
     
     
 class UserHospital(TimestampAwareModel):
-    user_details=models.ForeignKey('UserDetails',on_delete=models.CASCADE)
+    user=models.ForeignKey(User,on_delete=models.CASCADE, null=True, blank=True)
     hospital=models.ForeignKey("hospital.Hospital",on_delete=models.CASCADE)        
     
     def __str__(self):
-        return f"{self.user_details.user_obj.username}({self.hospital})"
+        return f"{self.user.username}({self.hospital})"
     
     
 class UserDetails(TimestampAwareModel):
