@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User,Role,UserDetails
+from .models import User,Role,UserDetails,UserRole
 from apps.Address.serializers import Address_seriliaztion
 
 
@@ -70,3 +70,7 @@ class UserDetailsSerializer(serializers.ModelSerializer):
         model= UserDetails
         fields=['user_obj','role','address','reporting_to']        
 
+class UserRoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserRole
+        fields=['user','role']

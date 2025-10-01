@@ -7,10 +7,10 @@ from apps.licenses.models import License
 from django.db import transaction
 from .swagger_docs.hospital_swagger import *
 from rest_framework.parsers import MultiPartParser, FormParser
-from apps.users.models import UserDetails
+from apps.users.models import UserDetails,UserHospital,UserRole,Role
 from .models import Hospital
 from .serializers import HospitalCreateSerializer
-from apps.users.serializers import UserSerializer
+from apps.users.serializers import UserSerializer,UserRoleSerializer
 from apps.users.views import RegisterUser
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail  
@@ -21,79 +21,96 @@ from src.settings.base import  EMAIL_HOST_USER
 from rest_framework import status
 from apps.users.models import UserHospital
 from apps.Address.serializers import Address_seriliaztion
+from apps.hospital.swagger_docs.hospital_swagger import *
 
 User = get_user_model()
 
+
 class CreateHospital(APIView):
     permission_classes = [IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
+
     @hospital_create_schema()
     def post(self, request):
         try:
             with transaction.atomic():
-                user_instance = request.user
+                user = request.user
+                data = request.data
 
+                # Required fields
                 required_fields = [
-                    'name', 'email', 'phone', 'website',
-                    'logo', 'established_year', 'Approval',
-                    'address','city', 'state', 'country', 'pincode','license_number',
-                    'issued_by','issue_date','expiry_date','document','is_verified'
+                    'name', 'email', 'phone', 'website', 'logo',
+                    'established_year', 'Approval', 'address', 'city',
+                    'state', 'country', 'pincode', 'license_number',
+                    'issued_by', 'issue_date', 'expiry_date', 'document', 'is_verified'
                 ]
-                missing = [field for field in required_fields if not request.data.get(field)]
+                missing = [field for field in required_fields if not data.get(field)]
                 if missing:
-                    return Response({'error': f'Missing fields: {", ".join(missing)}'}, status=400)
+                    return Response(
+                        {"error": f"Missing fields: {', '.join(missing)}"},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
 
-                address,_ = Address.objects.get_or_create(
-                    address=request.data.get('address'),
-                    city=request.data.get('city'),
-                    state=request.data.get('state'),
-                    country=request.data.get('country'),
-                    pincode=request.data.get('pincode'),
+                # Create or get Address
+                address, _ = Address.objects.get_or_create(
+                    address=data['address'],
+                    city=data['city'],
+                    state=data['state'],
+                    country=data['country'],
+                    pincode=data['pincode'],
                 )
 
-                license_instance,_= License.objects.get_or_create(
-                    license_number=request.data.get("license_number"),
+                # Create or update License
+                is_verified = str(data.get('is_verified')).lower() == 'true'
+                license_instance, _ = License.objects.update_or_create(
+                    license_number=data['license_number'],
                     defaults={
-                    "issued_by":request.data.get('issued_by'),
-                    "issue_date":request.data.get('issue_date'),
-                    "expiry_date":request.data.get('expiry_date'),
-                    "document":request.data.get('document'),
-                    "is_verified":str(request.data.get('is_verified')).lower =='true'
+                        "issued_by": data['issued_by'],
+                        "issue_date": data['issue_date'],
+                        "expiry_date": data['expiry_date'],
+                        "document": data['document'],
+                        "is_verified": is_verified
                     }
                 )
+
+                # Hospital data
                 hospital_data = {
-                    "name": request.data.get('name'),
-                    "email": request.data.get('email'),
-                    "phone": request.data.get('phone'),
-                    "website": request.data.get('website'),
-                    "logo": request.data.get('logo'),
-                    "established_year": request.data.get('established_year'),
-                    "Approval": request.data.get('Approval'),
-                    "address": address.id
+                    "name": data['name'],
+                    "email": data['email'],
+                    "phone": data['phone'],
+                    "website": data['website'],
+                    "logo": data['logo'],
+                    "established_year": data['established_year'],
+                    "Approval": data['Approval'],
+                    "address": address.id,
+                    "license": license_instance.id
                 }
 
                 serializer = HospitalCreateSerializer(
-                            data=hospital_data,
-                            context={"request": request, "address_id": address.id, 'license_id': license_instance.id}
-                        )
-
+                    data=hospital_data,
+                    context={"request": request ,"address_id": address.id, 'license_id': license_instance.id}
+                )
 
                 if serializer.is_valid():
-                    user_instance.onboarding_complete = True
-                    user_instance.save()
+                    user.onboarding_complete = True
+                    user.save()
                     hospital = serializer.save()
 
-                    
                     return Response({
-                        "status": 200,
-                        "message": "Hospital Register Successfully",
+                        "status": status.HTTP_201_CREATED,
+                        "message": "Hospital registered successfully",
                         "Hospital": HospitalResponseSerializer(hospital).data
                     })
 
-                return Response({"error": serializer.errors, "status": 400})
+                return Response(
+                    {"error": serializer.errors, "status": status.HTTP_400_BAD_REQUEST},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
         except Exception as e:
-            return Response({"error": str(e), "status": 501})
+            return Response(
+                {"error": str(e), "status": status.HTTP_500_INTERNAL_SERVER_ERROR},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class Hospital_Users(APIView):
     permission_classes = [IsAuthenticated]
@@ -209,9 +226,11 @@ class HospitalListOrDetailView(APIView):
 class HospitalUserCreate(APIView):
     permission_classes = [IsAuthenticated]
     @register_or_verify_schema()
-    def post(self, request,id):
+    def post(self, request):
         uidb64 = request.query_params.get('uidb64')
         verifyed_token = request.query_params.get('verifyed_token')
+        id = request.data.get('id')
+        print("id",id)
 
         try:
             with transaction.atomic():
@@ -291,10 +310,7 @@ class HospitalUserCreate(APIView):
                         return Response({"error": f"Failed to send email. Reason: {str(e)}"}, status=500)
 
                     return Response({"message": "User registered. Verification email sent.","token":token,"uid":uid}, status=201)
-                else:
-                    return Response(serializer.errors, status=400)
-
-                
+                 
                 if uidb64 and verifyed_token:
                     try:
                         uid = force_str(urlsafe_base64_decode(uidb64))
@@ -316,14 +332,40 @@ class HospitalUserCreate(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=500)
 
-
 class AssignUserRole(APIView):
-    permission_classes=[IsAuthenticated]
-    def post(self,request,id):
-        UserDetails.objects.select_related('role').filter(hospital=id)
-                            
-                                   
-                
+    permission_classes = [IsAuthenticated]
+
+    @assign_user_role_schema()
+    def post(self, request):
+        user_id = request.data.get("user_id")
+        role_ids = request.data.get("role_ids")
+
+        if not user_id or not role_ids:
+            return Response(
+                {"error": "missing user_id or role_ids", "status": 404},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found", "status": 404},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        roles = Role.objects.filter(id__in=role_ids)
+        if not roles.exists():
+            return Response({"error": "No valid roles found", "status": 404},status=status.HTTP_404_NOT_FOUND)
+
+        created_roles = []
+        for role in roles:
+            UserRole.objects.update_or_create(user=user, role=role)
+            created_roles.append({"user": user.username, "role": role.name})
+
+        return Response({"message": "Roles assigned successfully","assigned_roles": created_roles},
+            status=status.HTTP_200_OK)
+               
             
             
         

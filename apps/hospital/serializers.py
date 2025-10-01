@@ -51,12 +51,15 @@ class HospitalCreateSerializer(ModelSerializer):
     
         if not role:
             raise ValueError("Role 'Hospital Director' does not exist.")
+        print("role found hospital director")
         
-        userrole, _ = UserRole.objects.get_or_create(user=request.user, defaults={"role": role})
-        userhospital, _ = UserHospital.objects.get_or_create(user=request.user, defaults={"hospital": hospital})
+        userrole, _ = UserRole.objects.get_or_create(user=request.user, role=role)
+        print("userrole:",userrole)
+        
+        userhospital, _ = UserHospital.objects.update_or_create(user=request.user, defaults={"hospital": hospital})
 
         
-        UserDetails.objects.get_or_create(
+        UserDetails.objects.update_or_create(
         user_obj=request.user,
         defaults={
             "address": address,

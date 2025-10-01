@@ -74,7 +74,7 @@ class Role(TimestampAwareModel):
 
 class UserRole(TimestampAwareModel):
     user = models.ForeignKey(User,on_delete=models.CASCADE, null=True, blank=True)
-    role = models.ForeignKey(Role,on_delete=models.CASCADE)
+    role = models.ForeignKey(Role,on_delete=models.CASCADE,null=True,blank=True)
     
     def __str__(self):
         return f"{self.user.username}({self.role.name})"
@@ -91,8 +91,8 @@ class UserHospital(TimestampAwareModel):
     
 class UserDetails(TimestampAwareModel):
     user_obj=models.OneToOneField('User',on_delete=models.CASCADE,primary_key=True)
-    address=models.ForeignKey(Address,on_delete=models.CASCADE)
-    role=models.ForeignKey(UserRole,on_delete=models.CASCADE)
+    address=models.ForeignKey(Address,on_delete=models.CASCADE,blank=True, null=True)
+    role=models.ForeignKey(UserRole,on_delete=models.CASCADE,blank=True, null=True)
     hospital = models.ForeignKey(UserHospital, on_delete=models.CASCADE, blank=True, null=True) 
     reporting_to=models.ForeignKey('User',on_delete=models.SET_NULL,blank=True,null=True, 
                                    related_name="subordinates")

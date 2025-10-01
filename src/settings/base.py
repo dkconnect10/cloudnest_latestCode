@@ -69,7 +69,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     
     # user ip 
-    'apps.users.middleware.simple_user_logger.SimpleUserMiddleware',
+    # 'apps.users.middleware.simple_user_logger.SimpleUserMiddleware',
     
     # frontend middleware
     'corsheaders.middleware.CorsMiddleware'

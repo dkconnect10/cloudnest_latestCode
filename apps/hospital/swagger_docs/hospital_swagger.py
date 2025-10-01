@@ -200,3 +200,59 @@ def register_or_verify_schema():
             500: openapi.Response(description="Internal server error - Email sending failed"),
         }
     )
+
+def assign_user_role_schema():
+    """
+    Swagger schema for AssignUserRole API
+    Assign multiple roles to a single user.
+    """
+    return swagger_auto_schema(
+        operation_summary="Assign Roles to User",
+        operation_description="""
+        Assign one or multiple roles to a specific user.
+        
+        - Provide `user_id` of the user
+        - Provide `role_ids` as a list of role IDs to assign
+        - Duplicate roles will be ignored automatically
+        """,
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'user_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='ID of the user', example=4),
+                'role_ids': openapi.Schema(
+                    type=openapi.TYPE_ARRAY,
+                    items=openapi.Items(type=openapi.TYPE_INTEGER),
+                    description='List of role IDs to assign',
+                    example=[1, 2, 3]
+                ),
+            },
+            required=['user_id', 'role_ids']
+        ),
+        responses={
+            200: openapi.Response(
+                description='Roles assigned successfully',
+                examples={
+                    "application/json": {
+                        "message": "Roles assigned successfully",
+                        "assigned_roles": [
+                            {"user": "sajan", "role": "Admin"},
+                            {"user": "sajan", "role": "Doctor"}
+                        ]
+                    }
+                }
+            ),
+            404: openapi.Response(
+                description='User not found or roles not found',
+                examples={
+                    "application/json": {"error": "User not found", "status": 404}
+                }
+            ),
+            400: openapi.Response(
+                description='Missing user_id or role_ids',
+                examples={
+                    "application/json": {"error": "missing user_id or role_ids", "status": 404}
+                }
+            ),
+            500: openapi.Response(description='Internal server error')
+        }
+    )

@@ -7,7 +7,7 @@ User = get_user_model()
 
 class Hospital(TimestampAwareModel):
     name = models.CharField(max_length=200, unique=True)
-    owner = models.OneToOneField(User,on_delete=models.CASCADE)
+    owner = models.ForeignKey(User,on_delete=models.CASCADE)
     email = models.EmailField(null=True, blank=True)
     phone = models.CharField(max_length=15, null=True, blank=True)
     website = models.URLField(null=True, blank=True)
