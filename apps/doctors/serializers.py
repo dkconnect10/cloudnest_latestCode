@@ -1,24 +1,16 @@
+# apps/doctors/serializers.py
+from rest_framework import serializers
 from .models import Doctor
-from rest_framework.serializers import ModelSerializer
-from apps.users.serializers import UserSerializer , RoleSerializer
-from apps.Address.serializers import Address_seriliaztion
+from apps.Address.serializers import AddressSerializer
 from apps.licenses.serializers import LicenseSerializer
+from apps.users.serializers import RoleSerializer
 
-
-class DoctorSerializer(ModelSerializer):
-    user = UserSerializer()
-    address = Address_seriliaztion()
-    role = RoleSerializer()
+class DoctorSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)   # सिर्फ़ username/email दिखेगा
+    address = AddressSerializer()
     license = LicenseSerializer()
+    role = RoleSerializer()
 
     class Meta:
         model = Doctor
-        fields = [
-            'user',
-            'address',
-            'role',
-            'specialization',
-            'experience_years',
-            'license',
-            
-        ]
+        fields = ['id', 'user', 'specialization', 'experience_years', 'address', 'license', 'role']

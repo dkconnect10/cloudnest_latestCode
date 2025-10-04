@@ -1,7 +1,19 @@
+from rest_framework import serializers
 from .models import License
-from rest_framework.serializers import ModelSerializer
 
-class LicenseSerializer(ModelSerializer):
+class LicenseSerializer(serializers.ModelSerializer):
     class Meta:
         model = License
-        fields = '__all__'  
+        fields = [
+            'id',
+            'license_number',
+            'issued_by',
+            'issue_date',
+            'expiry_date',
+            'document',
+            'is_verified',
+            'remarks',
+            'created_at',
+            'updated_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']

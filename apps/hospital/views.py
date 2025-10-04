@@ -1,373 +1,104 @@
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from apps.Address.models import Address
-from .serializers import HospitalCreateSerializer, HospitalResponseSerializer
-from apps.licenses.models import License
-from django.db import transaction
-from .swagger_docs.hospital_swagger import *
-from rest_framework.parsers import MultiPartParser, FormParser
-from apps.users.models import UserDetails,UserHospital,UserRole,Role
-from .models import Hospital
-from .serializers import HospitalCreateSerializer
-from apps.users.serializers import UserSerializer,UserRoleSerializer
-from apps.users.views import RegisterUser
-from django.contrib.auth import get_user_model
-from django.core.mail import send_mail  
-from django.contrib.auth.tokens import PasswordResetTokenGenerator 
-from django.utils.http import urlsafe_base64_encode,urlsafe_base64_decode
-from django.utils.encoding import force_bytes,force_str
-from src.settings.base import  EMAIL_HOST_USER
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-from apps.users.models import UserHospital
-from apps.Address.serializers import Address_seriliaztion
-from apps.hospital.swagger_docs.hospital_swagger import *
+from django.shortcuts import get_object_or_404
+from .models import Hospital, UserHospital
+from apps.users.models import User, Role, UserRole
+from .serializers import *
 
-User = get_user_model()
 
 
 class CreateHospital(APIView):
     permission_classes = [IsAuthenticated]
 
-    @hospital_create_schema()
     def post(self, request):
-        try:
-            with transaction.atomic():
-                user = request.user
-                data = request.data
+        serializer = HospitalSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(owner=request.user)
+            return Response({"status": "success", "data": serializer.data}, status=status.HTTP_201_CREATED)
+        return Response({"status": "error", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-                # Required fields
-                required_fields = [
-                    'name', 'email', 'phone', 'website', 'logo',
-                    'established_year', 'Approval', 'address', 'city',
-                    'state', 'country', 'pincode', 'license_number',
-                    'issued_by', 'issue_date', 'expiry_date', 'document', 'is_verified'
-                ]
-                missing = [field for field in required_fields if not data.get(field)]
-                if missing:
-                    return Response(
-                        {"error": f"Missing fields: {', '.join(missing)}"},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-
-                # Create or get Address
-                address, _ = Address.objects.get_or_create(
-                    address=data['address'],
-                    city=data['city'],
-                    state=data['state'],
-                    country=data['country'],
-                    pincode=data['pincode'],
-                )
-
-                # Create or update License
-                is_verified = str(data.get('is_verified')).lower() == 'true'
-                license_instance, _ = License.objects.update_or_create(
-                    license_number=data['license_number'],
-                    defaults={
-                        "issued_by": data['issued_by'],
-                        "issue_date": data['issue_date'],
-                        "expiry_date": data['expiry_date'],
-                        "document": data['document'],
-                        "is_verified": is_verified
-                    }
-                )
-
-                # Hospital data
-                hospital_data = {
-                    "name": data['name'],
-                    "email": data['email'],
-                    "phone": data['phone'],
-                    "website": data['website'],
-                    "logo": data['logo'],
-                    "established_year": data['established_year'],
-                    "Approval": data['Approval'],
-                    "address": address.id,
-                    "license": license_instance.id
-                }
-
-                serializer = HospitalCreateSerializer(
-                    data=hospital_data,
-                    context={"request": request ,"address_id": address.id, 'license_id': license_instance.id}
-                )
-
-                if serializer.is_valid():
-                    user.onboarding_complete = True
-                    user.save()
-                    hospital = serializer.save()
-
-                    return Response({
-                        "status": status.HTTP_201_CREATED,
-                        "message": "Hospital registered successfully",
-                        "Hospital": HospitalResponseSerializer(hospital).data
-                    })
-
-                return Response(
-                    {"error": serializer.errors, "status": status.HTTP_400_BAD_REQUEST},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-        except Exception as e:
-            return Response(
-                {"error": str(e), "status": status.HTTP_500_INTERNAL_SERVER_ERROR},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-class Hospital_Users(APIView):
+class HospitalListOrDetailView(APIView):
     permission_classes = [IsAuthenticated]
-    @hospital_users_schema()
-    def get(self, request):
-        hospital_id = request.query_params.get('hospital_id')
-        
-        if not hospital_id:
-            return Response({"message": "Hospital id is required", "status": 404}, status=404)
-        
-        userinfo = []
-        userdetails = UserDetails.objects.select_related(
-            'user_obj', 'address', 'role', 'hospital', 'reporting_to'
-        ).filter(hospital=hospital_id)
-        
-        if userdetails:
-            for user in userdetails:
-                details = {
-                    "full_name": user.user_obj.full_name if user.user_obj else None,
-                    "address": (
-                        f"{user.address.address}, {user.address.city}, {user.address.state}, {user.address.pincode}"
-                        if user.address else None
-                    ),
-                    "role": user.role.name if user.role else None,
-                    "hospital": user.hospital.name if user.hospital else None,
-                    "reporting_to": user.reporting_to.full_name if user.reporting_to else None
-                }
-                userinfo.append(details)
 
-        return Response({"User_Information": userinfo, "status": 200}, status=200)
+    def get(self, request, hospital_id=None):
+        if hospital_id:
+            hospital = get_object_or_404(Hospital, id=hospital_id)
+            serializer = HospitalDetailSerializer(hospital)
+        else:
+            hospitals = Hospital.objects.all()
+            serializer = HospitalSerializer(hospitals, many=True)
+        return Response({"status": "success", "data": serializer.data})
 
-class update_Hospital(APIView):
+class UpdateHospital(APIView):
     permission_classes = [IsAuthenticated]
-    @hospital_update_schema()
-    def patch(self, request):
-        hospital_id = request.query_params.get('hospital_id')
-        if not hospital_id:
-            return Response({"message": "hospital id is required", "status": 404}, status=404)
 
-        try:
-            hospital = Hospital.objects.get(id=hospital_id)
-        except Hospital.DoesNotExist:
-            return Response({"message": "Hospital not exist. Please create new hospital", "status": 401}, status=401)
-
-        # Flatten fields
-        data = request.data
-        print("Request Data:", data)
-
-        # Address update
-        if hospital.address:
-            address_instance = hospital.address
-            address_instance.address = data.get('address', address_instance.address)
-            address_instance.city = data.get('city', address_instance.city)
-            address_instance.state = data.get('state', address_instance.state)
-            address_instance.country = data.get('country', address_instance.country)
-            address_instance.pincode = data.get('pincode', address_instance.pincode)
-            address_instance.save()
-
-        # License update
-        if hospital.license:
-            license_instance = hospital.license
-            license_instance.license_number = data.get('license_number', license_instance.license_number)
-            license_instance.issued_by = data.get('issued_by', license_instance.issued_by)
-            license_instance.issue_date = data.get('issue_date', license_instance.issue_date)
-            license_instance.expiry_date = data.get('expiry_date', license_instance.expiry_date)
-            license_instance.document = data.get('document', license_instance.document)
-            license_instance.is_verified = data.get('is_verified', license_instance.is_verified)
-            license_instance.save()
-
-        # Main hospital update
-        update_fields = {
-            "name": data.get("name"),
-            "email": data.get("email"),
-            "phone": data.get("phone"),
-            "logo": data.get("logo"),
-        }
-        update_fields = {k: v for k, v in update_fields.items() if v is not None}
-
-        serializer = HospitalCreateSerializer(hospital, data=update_fields, partial=True)
-
+    def post(self, request):
+        hospital_id = request.data.get("id")
+        hospital = get_object_or_404(Hospital, id=hospital_id)
+        serializer = HospitalSerializer(hospital, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response({
-                "message": "Hospital updated successfully",
-                "updated Data": serializer.data
-            }, status=200)
+            return Response({"status": "success", "data": serializer.data})
+        return Response({"status": "error", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({
-            "message": "Something went wrong while updating Hospital details",
-            "errors": serializer.errors,
-            "status": 501
-        }, status=501)
-   
-class HospitalListOrDetailView(APIView):
-    permission_classes=[IsAuthenticated]
-    @hospital_details_schema()
-    def get(self,request):
-        hospital_id = request.query_params.get('hospital_id')
-        try:
-            if hospital_id:
-                hospital_instance = Hospital.objects.filter(id=hospital_id).first()
-                
-                if hospital_instance:
-                    serializer = HospitalResponseSerializer(hospital_instance)
-                    return Response({"message":"Hospital Get successfully","Data":serializer.data},status=200)
-                return Response({"message":"hospoital not found"},status=404)
-            hospital_instance = Hospital.objects.all()
-            serializer = HospitalResponseSerializer(hospital_instance,many=True)
-            return Response({"message":"Hospitals fetched successfully","Data":serializer.data},status=200)
-        except Exception as e :
-            return Response({"error":str(e)},status=500)
-            
+class DeleteHospital(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, hospital_id):
+        hospital = get_object_or_404(Hospital, id=hospital_id)
+        hospital.delete()
+        return Response({"status": "success", "message": "Hospital deleted"}, status=status.HTTP_200_OK)
+
+class ToggleHospitalStatus(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, hospital_id):
+        hospital = get_object_or_404(Hospital, id=hospital_id)
+        hospital.is_active = not hospital.is_active
+        hospital.save()
+        return Response({"status": "success", "is_active": hospital.is_active})
+
 class HospitalUserCreate(APIView):
     permission_classes = [IsAuthenticated]
-    @register_or_verify_schema()
+
     def post(self, request):
-        uidb64 = request.query_params.get('uidb64')
-        verifyed_token = request.query_params.get('verifyed_token')
-        id = request.data.get('id')
-        print("id",id)
+        serializer = HospitalUserSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"status": "success", "data": serializer.data})
+        return Response({"status": "error", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            with transaction.atomic():
-                if not uidb64 and not verifyed_token:
-                    required_fields = [
-                        'email', 'username', 'password', 'avatar',
-                        'full_name', 'phone', 'signup_source','gender',
-                        'address','city', 'state', 'country', 'pincode',
-                        ]
-                    print(request.data)
-                    missing = [field for field in required_fields if not request.data.get(field)]
-                    
-                    if missing:
-                        return Response({"error": f"Missing fields: {', '.join(missing)}"}, status=400)
-                    
-                    user_data = {
-                        "email":request.data.get('email'),
-                        "username":request.data.get('username'),
-                        "full_name":request.data.get('full_name'),
-                        "phone":request.data.get('phone'),
-                        "gender":request.data.get('gender'),
-                        "password":request.data.get('password'),
-                        "avatar":request.data.get('avatar')
-                        }
-                    print(user_data)
-                    
-                    address_data={
-                        "address":request.data.get('address'),
-                        "city":request.data.get('city'),
-                        "state":request.data.get('state'),
-                        "country":request.data.get('country'),
-                        "pincode":request.data.get('pincode')
-                        }
-                    print(address_data)
-                    
-                    
-                    existingUser= User.objects.filter(email=user_data.get('email')).first()
-                    if existingUser:
-                        serializer = UserSerializer(existingUser,data=user_data,partial=True)
-                    else:
-                        serializer = UserSerializer(data=user_data)   
-                    
-                    if serializer.is_valid():
-                        userInstance = serializer.save()    
-
-                    try:
-                        hospital = Hospital.objects.get(id=id)
-                        print(hospital)
-                    except:
-                        return Response({"error": "Hospital not found."}, status=404)    
-                                
-                    userhospital, _ = UserHospital.objects.get_or_create(user=userInstance,hospital=hospital)
-                    print(userhospital)
-                    
-                    address_serializer = Address_seriliaztion(data=address_data)
-                    if address_serializer.is_valid():
-                        address_serializer.save()
-                    
-                    email = serializer.validated_data.get("email")
-                    print(email)
-                    user = User.objects.get(email=email)
-                    print(user)
-                    token_generator = PasswordResetTokenGenerator()
-                    token = token_generator.make_token(user)
-                    uid = urlsafe_base64_encode(force_bytes(user.pk))
-
-                    verify_link = f"http://localhost:3000/verify-email?uid={uid}&token={token}"
-                    try:
-                        send_mail(
-                            subject='Verify your Email',
-                            message=f"Click the link to verify your email:\n{verify_link}",
-                            from_email=EMAIL_HOST_USER,
-                            recipient_list=[email],
-                            fail_silently=False,
-                        )
-                    except Exception as e:
-                        return Response({"error": f"Failed to send email. Reason: {str(e)}"}, status=500)
-
-                    return Response({"message": "User registered. Verification email sent.","token":token,"uid":uid}, status=201)
-                 
-                if uidb64 and verifyed_token:
-                    try:
-                        uid = force_str(urlsafe_base64_decode(uidb64))
-                        user = User.objects.get(pk=uid)
-                    except (User.DoesNotExist, ValueError, TypeError):
-                        return Response({"message": "User not found"}, status=status.HTTP_401_UNAUTHORIZED)
-
-                    token_generator = PasswordResetTokenGenerator()
-                    if not token_generator.check_token(user, verifyed_token):
-                        return Response({"message": "Invalid or expired token"}, status=status.HTTP_401_UNAUTHORIZED)
-
-                    user.is_active = True
-                    user.is_email_verified = True
-                    user.save()
-                    return Response({"message": "User verified successfully"}, status=status.HTTP_202_ACCEPTED)
-
-                return Response({"error": "Invalid request: either provide registration data or verification parameters"}, status=400)
-
-        except Exception as e:
-            return Response({"error": str(e)}, status=500)
-
-class AssignUserRole(APIView):
+class GetUserAndRole(APIView):
     permission_classes = [IsAuthenticated]
 
-    @assign_user_role_schema()
+    def get(self, request, hospital_id):
+        users = UserHospital.objects.filter(hospital_id=hospital_id).values_list('user', flat=True)
+        roles = UserRole.objects.filter(user__in=users)
+        serializer = UserRoleSerializer(roles, many=True)
+        return Response({"status": "success", "data": serializer.data})
+
+class AssignUserRoleToHospital(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         user_id = request.data.get("user_id")
-        role_ids = request.data.get("role_ids")
+        role_id = request.data.get("role_id")
+        hospital_id = request.data.get("hospital_id")
 
-        if not user_id or not role_ids:
-            return Response(
-                {"error": "missing user_id or role_ids", "status": 404},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        if not all([user_id, role_id, hospital_id]):
+            return Response({"status": "error", "message": "Missing fields"}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            user = User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            return Response(
-                {"error": "User not found", "status": 404},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        user = get_object_or_404(User, id=user_id)
+        role = get_object_or_404(Role, id=role_id)
+        hospital = get_object_or_404(Hospital, id=hospital_id)
 
-        roles = Role.objects.filter(id__in=role_ids)
-        if not roles.exists():
-            return Response({"error": "No valid roles found", "status": 404},status=status.HTTP_404_NOT_FOUND)
+        # Check if user belongs to hospital
+        UserHospital.objects.get_or_create(user=user, hospital=hospital)
 
-        created_roles = []
-        for role in roles:
-            UserRole.objects.update_or_create(user=user, role=role)
-            created_roles.append({"user": user.username, "role": role.name})
+        # Assign role
+        UserRole.objects.get_or_create(user=user, role=role)
 
-        return Response({"message": "Roles assigned successfully","assigned_roles": created_roles},
-            status=status.HTTP_200_OK)
-               
-            
-            
-        
-        
-        
+        return Response({"status": "success", "message": f"Role '{role.name}' assigned to user '{user.username}'"})
+

@@ -1,23 +1,30 @@
 from django.db import models
-from apps.Address.models import TimestampAwareModel,Address
-from django.contrib.auth import get_user_model
+from apps.Address.models import Address, TimestampAwareModel
+from apps.users.models import User
 from apps.licenses.models import License
-
-User = get_user_model()
 
 class Hospital(TimestampAwareModel):
     name = models.CharField(max_length=200, unique=True)
-    owner = models.ForeignKey(User,on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="owned_hospitals")
     email = models.EmailField(null=True, blank=True)
     phone = models.CharField(max_length=15, null=True, blank=True)
     website = models.URLField(null=True, blank=True)
-    address = models.ForeignKey(Address,on_delete=models.CASCADE, null=True, blank=True)
+    address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, blank=True)
     logo = models.ImageField(upload_to="hospital_logos/", null=True, blank=True)
-    license=models.OneToOneField(License,on_delete=models.CASCADE,null=True,blank=True)
+    license = models.OneToOneField(License, on_delete=models.SET_NULL, null=True, blank=True)
     established_year = models.PositiveIntegerField(null=True, blank=True)
-    Approval = models.CharField(max_length=200, null=True, blank=True)
+    approval_status = models.CharField(max_length=200, null=True, blank=True)
     is_active = models.BooleanField(default=True)
-    
 
     def __str__(self):
         return self.name
+
+class UserHospital(TimestampAwareModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="hospitals")
+    hospital = models.ForeignKey(Hospital, on_delete=models.CASCADE, related_name="users")
+
+    class Meta:
+        unique_together = ("user", "hospital")
+
+    def __str__(self):
+        return f"{self.user.username} ({self.hospital.name})"
