@@ -1,3 +1,7 @@
+create app  =      mkdir apps/doctorReview
+                  python manage.py startapp prescription apps/prescription
+
+
 ec2 instance
 ------------------------------------------------
 **collect static files and media

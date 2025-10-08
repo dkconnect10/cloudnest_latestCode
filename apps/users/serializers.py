@@ -1,9 +1,7 @@
 from rest_framework import serializers
 from .models import User, Role, UserRole
 
-# -------------------
-# USER SERIALIZER (for Registration)
-# -------------------
+
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
 
@@ -31,10 +29,11 @@ class UserSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(password=password, **validated_data)
         return user
 
+class UserMiniSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'full_name']
 
-# -------------------
-# USER UPDATE SERIALIZER
-# -------------------
 class updateUserserializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=False)
 
@@ -59,19 +58,11 @@ class updateUserserializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-
-# -------------------
-# ROLE SERIALIZER
-# -------------------
 class RoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Role
         fields = ['id', 'name', 'is_active']
 
-
-# -------------------
-# USERROLE SERIALIZER
-# -------------------
 class UserRoleSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     role = RoleSerializer(read_only=True)
@@ -83,10 +74,6 @@ class UserRoleSerializer(serializers.ModelSerializer):
         fields = ['user', 'role', 'user_id', 'role_id']
         # depth = 1  # optional if you want nested details
 
-
-# -------------------
-# USER PROFILE SERIALIZER (Optional: with Roles)
-# -------------------
 class UserProfileSerializer(serializers.ModelSerializer):
     roles = serializers.SerializerMethodField()
 
@@ -97,3 +84,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def get_roles(self, obj):
         user_roles = obj.roles.all()
         return [ur.role.name for ur in user_roles]
+
+class GetAllUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id','email', 'username', 'password', 'full_name', 'phone', 'avatar', 'gender', 'signup_source']

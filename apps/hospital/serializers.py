@@ -6,10 +6,6 @@ from apps.licenses.serializers import LicenseSerializer
 from apps.Address.models import Address
 from apps.licenses.models import License
 
-
-
-
-
 class HospitalSerializer(serializers.ModelSerializer):
     address = AddressSerializer(required=False)
     license = LicenseSerializer(required=False)
@@ -39,7 +35,6 @@ class HospitalSerializer(serializers.ModelSerializer):
             **validated_data
         )
         return hospital
-
 
 class HospitalUserSerializer(serializers.ModelSerializer):
     class Meta:

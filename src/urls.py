@@ -29,6 +29,10 @@ urlpatterns = [
     path('users/api/',include('apps.users.urls')),
     path('doctors/api/',include('apps.doctors.urls')),
     path('hospital/api/',include('apps.hospital.urls')),
+    path('patient/api/',include('apps.patient.urls')),
+    # path('prescription/api/',include('apps.prescription.urls')),
+    # path('doctorReview/api/',include('apps.doctorReview.urls')),
+   
     
     
     
