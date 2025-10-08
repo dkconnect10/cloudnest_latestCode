@@ -1,4 +1,4 @@
-from .views import RegisterUser,loginUser,GetProfile,UpdateProfile,logoutUser,ResetPassword,forgotPassword,AccountDeactivationReactivation,AccountDeletion
+from .views import *
 from django.urls import path
 
 urlpatterns = [
@@ -10,5 +10,6 @@ urlpatterns = [
    path('ResetPassword/',ResetPassword.as_view(),name='ResetPassword'),
    path('forgotPassword/',forgotPassword.as_view(),name='forgotPassword'),
    path('AccountDeactivationReactivation/',AccountDeactivationReactivation.as_view(),name='AccountDeactivationReactivation'),
-   path('AccountDeletion/',AccountDeletion.as_view(),name='AccountDeletion')
+   path('AccountDeletion/',AccountDeletion.as_view(),name='AccountDeletion'),
+   path("list/",GetAllUser.as_view(),name='GetAllUser'),
 ]

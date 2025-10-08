@@ -10,10 +10,14 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from .models import User
-from .serializers import UserSerializer, updateUserserializer
+from .serializers import UserSerializer, updateUserserializer,GetAllUserSerializer
 from src.settings.base import EMAIL_HOST_USER
 from .tasks import userActivation_Task
 from apps.users.swagger_docs.user_swagger import *
+from rest_framework.generics import ListAPIView
+# from rest_framework.pagination import PageNumberPagination
+from .pagination import MyCursorPagination
+
 
 
 
@@ -140,7 +144,6 @@ class forgotPassword(APIView):
     @forgot_password_schema()
     def post(self, request):
         email = request.data.get('email')
-        print("email:",email)
         uidb64 = request.data.get('uid')
         token = request.data.get('token')
         new_password = request.data.get('new_password')
@@ -220,3 +223,9 @@ class AccountDeactivationReactivation(APIView):
 
         message = "Account activated" if is_active else "Account deactivated (will auto-activate in 10s)"
         return Response({"message": message})
+
+class GetAllUser(ListAPIView):
+    # permission_classes = [IsAuthenticated]
+    queryset = User.objects.all()
+    serializer_class = GetAllUserSerializer
+    pagination_class = MyCursorPagination

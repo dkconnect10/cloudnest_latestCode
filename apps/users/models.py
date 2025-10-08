@@ -28,6 +28,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=100, unique=True)
     full_name = models.CharField(max_length=150, blank=True)
     phone = models.CharField(max_length=15, unique=True, null=True, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
     avatar = models.ImageField(upload_to=avatar_upload_path, null=True, blank=True)
     gender = models.CharField(max_length=10, choices=[("male","Male"),("female","Female"),("other","Other")], null=True, blank=True)
     is_email_verified = models.BooleanField(default=False)

@@ -36,7 +36,6 @@ class UpdateHospital(APIView):
 
     def post(self, request):
         hospital_id = request.data.get("id")
-        print("hospital:",hospital_id)
         hospital = get_object_or_404(Hospital, id=hospital_id)
         serializer = HospitalSerializer(hospital, data=request.data, partial=True)
         if serializer.is_valid():
@@ -75,9 +74,7 @@ class GetUserAndRole(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, hospital_id):
-        print("hospital_id:",hospital_id)
         users = UserHospital.objects.filter(hospital_id=hospital_id).values_list('user', flat=True)
-        print("users:",users)
         roles = UserRole.objects.filter(user__in=users)
         serializer = UserRoleSerializer(roles, many=True)
         return Response({"status": "success", "data": serializer.data})
